@@ -3,7 +3,6 @@ import { ActivePage } from './types';
 import { TopNav } from './components/layout/TopNav';
 import { QueryBar } from './components/layout/QueryBar';
 import { GlobalMarketTicker } from './components/ticker/GlobalMarketTicker';
-import { IntelligenceStream, StreamEvent } from './components/intelligence/IntelligenceStream';
 import { EventImpactMap } from './components/intelligence/EventImpactMap';
 import { AnalyticalChain } from './components/intelligence/AnalyticalChain';
 import { DecisionIntelligence } from './components/intelligence/DecisionIntelligence';
@@ -12,12 +11,21 @@ import { ScenarioLabSection } from './components/bottom/ScenarioLabSection';
 import { HistoricalAnalogsSection } from './components/bottom/HistoricalAnalogsSection';
 import { AuditDrawer } from './components/terminal/AuditDrawer';
 import { mockAuditTrace } from './data/mockRecommendations';
+import { AnalysisSnapshot, IntelligenceFinding, detectNewIntelligence } from './utils/intelligenceDiff';
+import { mockInitialAnalysis, mockNewAnalysis } from './data/mockAnalysis';
+import { NewIntelligenceStream } from './components/intelligence/NewIntelligenceStream';
 
 export function App() {
   const [activePage, setActivePage] = useState<ActivePage>('overview');
   const [currentTime, setCurrentTime] = useState<string>('12:43:08 EST');
   const [isAuditDrawerOpen, setIsAuditDrawerOpen] = useState<boolean>(false);
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState<boolean>(false);
+  const [isEventImpactExpanded, setIsEventImpactExpanded] = useState<boolean>(false);
+
+  // New Intelligence State
+  const [previousAnalysis, setPreviousAnalysis] = useState<AnalysisSnapshot | null>(null);
+  const [currentAnalysis, setCurrentAnalysis] = useState<AnalysisSnapshot | null>(null);
+  const [newFindings, setNewFindings] = useState<IntelligenceFinding[]>([]);
 
   // Live clock simulation
   useEffect(() => {
@@ -41,15 +49,27 @@ export function App() {
   // Handle Query Execution
   const handleRunAnalysis = (_query: string) => {
     setIsLoadingAnalysis(true);
+    
     setTimeout(() => {
       setIsLoadingAnalysis(false);
-      setIsAuditDrawerOpen(true);
-    }, 1000);
+      
+      // Simulate backend response
+      const isFirstQuery = !currentAnalysis;
+      const response = isFirstQuery ? mockInitialAnalysis : mockNewAnalysis;
+      
+      const findings = detectNewIntelligence(currentAnalysis, response);
+      setPreviousAnalysis(currentAnalysis);
+      setCurrentAnalysis(response);
+      setNewFindings(findings);
+    }, 2500);
   };
 
-  const handleSelectStreamEvent = (_event: StreamEvent) => {
-    // When clicking an intelligence stream event, we can open audit or highlight
-    setIsAuditDrawerOpen(true);
+  const handleIntelligenceItemClick = (sectionId?: string) => {
+    if (!sectionId) return;
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   };
 
   return (
@@ -69,33 +89,37 @@ export function App() {
           isLoading={isLoadingAnalysis}
         />
 
+        {/* NEW INTELLIGENCE STREAM */}
+        {(newFindings.length > 0 || isLoadingAnalysis) && (
+          <NewIntelligenceStream 
+            findings={newFindings} 
+            isAnalyzing={isLoadingAnalysis} 
+            onItemClick={handleIntelligenceItemClick} 
+          />
+        )}
+
         {/* 3. GLOBAL MARKET TICKER */}
-        <GlobalMarketTicker
-          onSelectTicker={() => setIsAuditDrawerOpen(true)}
-        />
+        <div id="market-pulse">
+          <GlobalMarketTicker
+            onSelectTicker={() => setIsAuditDrawerOpen(true)}
+          />
+        </div>
 
-        {/* 4. MAIN 3-COLUMN WORKSPACE */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-          {/* LEFT: INTELLIGENCE STREAM (~22% -> 3 cols) */}
-          <div className="lg:col-span-3">
-            <IntelligenceStream onSelectEvent={handleSelectStreamEvent} />
-          </div>
-
-          {/* CENTER: EVENT IMPACT ANALYSIS & ANALYTICAL CHAIN (~58% -> 6 cols) */}
-          <div className="lg:col-span-6 fit-card p-5 flex flex-col justify-between">
+        {/* 4. MAIN ANALYSIS ROW */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch transition-all duration-300">
+          {/* EVENT IMPACT ANALYSIS */}
+          <div className={`${isEventImpactExpanded ? 'lg:col-span-12' : 'lg:col-span-8'} fit-card p-6 transition-all duration-300 flex flex-col`}>
             <EventImpactMap
+              isExpanded={isEventImpactExpanded}
+              onToggleExpand={() => setIsEventImpactExpanded(!isEventImpactExpanded)}
               onOpenInfrastructureModal={() => setIsAuditDrawerOpen(true)}
             />
-            <AnalyticalChain
-              onSelectNode={() => setIsAuditDrawerOpen(true)}
-            />
           </div>
 
-          {/* RIGHT: DECISION INTELLIGENCE (~20% -> 3 cols) */}
-          <div className="lg:col-span-3">
+          {/* DECISION INTELLIGENCE */}
+          <div className={`${isEventImpactExpanded ? 'lg:col-span-12' : 'lg:col-span-4'} fit-card p-6 transition-all duration-300 flex flex-col`}>
             <DecisionIntelligence
               onExploreScenario={() => {
-                // Smooth scroll down to Scenario Lab
                 document.getElementById('scenario-lab')?.scrollIntoView({ behavior: 'smooth' });
               }}
               onViewEvidence={() => setIsAuditDrawerOpen(true)}
@@ -103,23 +127,37 @@ export function App() {
           </div>
         </div>
 
-        {/* 5. ROW 1 — SCENARIO LAB + HISTORICAL ANALOGS */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-          {/* SCENARIO LAB (~65% -> 8 cols) */}
-          <div id="scenario-lab" className="lg:col-span-8">
-            <ScenarioLabSection />
-          </div>
+        {/* 5. BOTTOM MODULES: KEY EVENT / PORTFOLIO / QUANT RISK / STRATEGY */}
+        <div id="risk" className="w-full bg-white rounded-xl shadow-sm border border-[#E2E8F0]">
+          <AnalyticalChain
+            onSelectNode={(nodeName) => {
+              if (nodeName === 'STRATEGY') {
+                const el = document.getElementById('strategy');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              } else {
+                setIsAuditDrawerOpen(true);
+              }
+            }}
+          />
+        </div>
 
-          {/* HISTORICAL ANALOGS (~35% -> 4 cols) */}
-          <div className="lg:col-span-4">
-            <HistoricalAnalogsSection
-              onSelectAnalog={() => setIsAuditDrawerOpen(true)}
-              onViewAll={() => setIsAuditDrawerOpen(true)}
-            />
+        {/* 6. REMAINING DASHBOARD CONTENT */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          {/* SCENARIO LAB */}
+          <div id="scenario-lab" className="lg:col-span-12">
+            <ScenarioLabSection />
           </div>
         </div>
 
-        {/* 6. ROW 2 — AGENT ANALYSIS */}
+        {/* 7. HISTORICAL ANALOGS ROW */}
+        <div id="historical-analogs" className="w-full">
+          <HistoricalAnalogsSection
+            onSelectAnalog={() => setIsAuditDrawerOpen(true)}
+            onViewAll={() => setIsAuditDrawerOpen(true)}
+          />
+        </div>
+
+        {/* 8. AGENT ANALYSIS */}
         <div className="w-full">
           <AgentAnalysisSection
             onSelectAgent={() => setIsAuditDrawerOpen(true)}

@@ -13,14 +13,14 @@ export const DecisionIntelligence: React.FC<DecisionIntelligenceProps> = ({
   const [activeTab, setActiveTab] = useState<'Overview' | 'WhyItMatters' | 'AgentViews' | 'Evidence'>('Overview');
 
   return (
-    <div className="fit-card p-6 flex flex-col justify-between h-full select-none">
+    <div className="flex flex-col justify-between h-full flex-1 select-none">
       <div>
         {/* Header & High Impact Badge */}
         <div className="flex items-center justify-between pb-3 border-b border-[#F1F5F9]">
-          <h2 className="text-[18px] font-semibold text-[#0F172A]">
+          <h2 className="text-[21px] font-bold text-[#0F172A]">
             Decision Intelligence
           </h2>
-          <span className="text-[11px] font-bold text-[#DC2626] bg-[#FEE2E2] px-2 py-0.5 rounded">
+          <span className="text-[11px] font-semibold text-[#DC2626] bg-[#FEE2E2] px-2 py-0.5 rounded">
             HIGH IMPACT
           </span>
         </div>
@@ -65,20 +65,16 @@ export const DecisionIntelligence: React.FC<DecisionIntelligenceProps> = ({
         {/* Active Event Hero Card */}
         <div className="flex items-center justify-between py-4 border-b border-[#F1F5F9] mb-4">
           <div>
-            <div className="text-[20px] font-semibold text-[#0F172A]">Gulf Hurricane</div>
-            <div className="text-[13px] font-medium text-[#475569] mt-0.5">Category 4</div>
+            <div className="text-[20px] font-semibold text-[#0F172A]">Bay of Bengal Flood</div>
+            <div className="text-[13px] font-medium text-[#475569] mt-0.5">SIMULATION</div>
             <div className="text-[12px] text-[#94A3B8] font-mono-tech mt-1">
-              NOAA • 12:41 UTC
+              SIMULATION • 12:41 UTC
             </div>
           </div>
 
-          {/* Hurricane satellite vortex graphic */}
           <div className="w-12 h-12 rounded-lg bg-[#0F172A] relative overflow-hidden flex items-center justify-center shrink-0 shadow-xs">
-            <div className="w-10 h-10 rounded-full border border-red-500/30 animate-pulse absolute" />
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F43F5E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 6a6 6 0 0 1 5.66 4M12 18a6 6 0 0 1-5.66-4M6.34 10A6 6 0 0 1 12 6M17.66 14A6 6 0 0 1 12 18" />
-              <circle cx="12" cy="12" r="2" fill="#F43F5E" />
-            </svg>
+            <div className="w-10 h-10 rounded-full border border-blue-500/30 animate-pulse absolute" />
+            <span className="text-[24px]">🌊</span>
           </div>
         </div>
 
@@ -103,25 +99,25 @@ export const DecisionIntelligence: React.FC<DecisionIntelligenceProps> = ({
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-[#64748B]">Risk Change</span>
-                <span className="font-semibold text-[#DC2626] text-[22px]">+14.2%</span>
+                <span className="font-semibold text-[#DC2626] text-[22px]">+11.4%</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-[#64748B]">VaR (95%)</span>
-                <span className="font-semibold text-[#0F172A] text-[14px]">$184K</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[#64748B]">Expected Shortfall</span>
-                <span className="font-semibold text-[#0F172A] text-[14px]">$241K</span>
+                <span className="text-[#64748B]">Portfolio Impact</span>
+                <span className="font-semibold text-[#DC2626] text-[14px]">+8.7%</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-[#64748B]">Confidence</span>
-                <span className="font-semibold text-[#16A34A] text-[14px]">87%</span>
+                <span className="font-semibold text-[#16A34A] text-[14px]">78%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-[#64748B]">Data State</span>
+                <span className="font-bold text-[#D97706] bg-[#FEF3C7] px-1.5 py-0.5 rounded text-[10px]">MODEL</span>
               </div>
             </div>
 
             {/* Mini Area Chart: Portfolio Risk (VaR) */}
             <div className="py-2">
-              <div className="text-[9px] font-bold text-[#64748B] mb-1">
+              <div className="text-[11px] font-semibold text-[#64748B] mb-1">
                 Portfolio Risk (VaR)
               </div>
               <div className="h-16 relative">
@@ -150,7 +146,7 @@ export const DecisionIntelligence: React.FC<DecisionIntelligenceProps> = ({
                   <circle cx="100" cy="8" r="3" fill="#DC2626" stroke="#FFFFFF" strokeWidth="1.5" />
                 </svg>
               </div>
-              <div className="flex justify-between text-[8px] text-[#94A3B8] font-plex-mono mt-0.5">
+              <div className="flex justify-between text-[10px] text-[#94A3B8] font-plex-mono mt-0.5">
                 <span>Jun 1</span>
                 <span>Jun 15</span>
                 <span>Jun 30</span>
@@ -166,28 +162,28 @@ export const DecisionIntelligence: React.FC<DecisionIntelligenceProps> = ({
           </div>
 
           <div className="space-y-2 tabular-data text-[13px]">
-            <div className="flex items-center justify-between text-[11px] py-0.5">
+            <div className="flex items-center justify-between text-[12px] py-0.5">
               <span className="text-[#94A3B8]">12:31</span>
-              <span className="text-[#334155] font-medium">Hurricane Cat 3 → Cat 4</span>
+              <span className="text-[#334155] font-medium">Flood Severity Upgrade</span>
               <ArrowUp className="w-3.5 h-3.5 text-[#DC2626]" />
             </div>
 
-            <div className="flex items-center justify-between text-[11px] py-0.5">
+            <div className="flex items-center justify-between text-[12px] py-0.5">
               <span className="text-[#94A3B8]">12:34</span>
-              <span className="text-[#334155] font-medium">WTI $78.21 → $80.40</span>
-              <div className="flex items-center gap-1 text-[#16A34A] font-bold">
-                <span>+2.8%</span>
+              <span className="text-[#334155] font-medium">Infrastructure Risk ↑</span>
+              <div className="flex items-center gap-1 text-[#DC2626] font-bold">
+                <span>High</span>
                 <ArrowUp className="w-3.5 h-3.5" />
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-[11px] py-0.5">
+            <div className="flex items-center justify-between text-[12px] py-0.5">
               <span className="text-[#94A3B8]">12:37</span>
               <span className="text-[#334155] font-medium">Sentiment -0.51 → -0.72</span>
               <ArrowDown className="w-3.5 h-3.5 text-[#DC2626]" />
             </div>
 
-            <div className="flex items-center justify-between text-[11px] py-0.5">
+            <div className="flex items-center justify-between text-[12px] py-0.5">
               <span className="text-[#94A3B8]">12:40</span>
               <span className="text-[#334155] font-medium">Energy exposure 38% → 43%</span>
               <ArrowUp className="w-3.5 h-3.5 text-[#DC2626]" />
@@ -195,7 +191,7 @@ export const DecisionIntelligence: React.FC<DecisionIntelligenceProps> = ({
 
             <div className="flex items-center justify-between text-[11px] py-0.5">
               <span className="text-[#94A3B8]">12:42</span>
-              <span className="text-[#334155] font-medium">Portfolio VaR +8.7% → +14.2%</span>
+              <span className="text-[#334155] font-medium">Risk Change +8.7% → +11.4%</span>
               <ArrowUp className="w-3.5 h-3.5 text-[#DC2626]" />
             </div>
           </div>

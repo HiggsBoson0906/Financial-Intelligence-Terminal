@@ -17,8 +17,8 @@ export const mockStreamEvents: StreamEvent[] = [
     time: '12:42',
     category: 'WEATHER',
     severity: 'HIGH',
-    title: 'Gulf storm upgraded to Category 4',
-    description: 'Trajectory shifted closer to key Gulf energy infrastructure.',
+    title: 'Bay of Bengal flood scenario detected',
+    description: 'MODEL: Eastern coastal infrastructure shows elevated simulated exposure.',
     iconType: 'storm',
   },
   {
@@ -26,8 +26,8 @@ export const mockStreamEvents: StreamEvent[] = [
     time: '12:39',
     category: 'MARKET',
     severity: 'MEDIUM',
-    title: 'WTI rises +2.8%',
-    description: 'Supply disruption concerns drive energy prices higher.',
+    title: 'Energy-sensitive assets exposed to disruption',
+    description: 'MODEL: Energy-sensitive assets exposed to simulated regional disruption.',
     iconType: 'chart',
   },
   {
@@ -35,8 +35,8 @@ export const mockStreamEvents: StreamEvent[] = [
     time: '12:37',
     category: 'NEWS',
     severity: 'MEDIUM',
-    title: 'Market sentiment -0.72',
-    description: 'Increased recession and supply risk in latest headlines.',
+    title: 'Portfolio risk increases under flood scenario',
+    description: 'SIMULATION: Portfolio risk metrics show elevated exposure.',
     iconType: 'news',
   },
   {
@@ -44,8 +44,8 @@ export const mockStreamEvents: StreamEvent[] = [
     time: '12:31',
     category: 'MACRO',
     severity: 'LOW',
-    title: 'Fed signals caution',
-    description: 'Inflation remains elevated, rate cut expectations lower.',
+    title: 'Regional trade routes impacted',
+    description: 'SIMULATION: Simulated supply chain delays detected.',
     iconType: 'macro',
   },
   {
@@ -54,7 +54,7 @@ export const mockStreamEvents: StreamEvent[] = [
     category: 'ENERGY',
     severity: 'MEDIUM',
     title: 'Refinery utilization at risk',
-    description: 'Several Gulf Coast refineries in potential path.',
+    description: 'MODEL: Several eastern refineries in potential flood path.',
     iconType: 'energy',
   },
 ];

@@ -11,22 +11,22 @@ export interface GlobalTickerItem {
 export const defaultTickers: GlobalTickerItem[] = [
   {
     symbol: 'S&P 500',
-    value: '5,482.31',
+    value: '5,842.16',
     change: '+0.82%',
     isPositive: true,
     sparkline: [40, 42, 41, 44, 46, 45, 48, 52],
   },
   {
     symbol: 'NASDAQ',
-    value: '17,421.32',
-    change: '+1.21%',
+    value: '18,432.21',
+    change: '+1.14%',
     isPositive: true,
     sparkline: [30, 32, 35, 34, 38, 42, 45, 50],
   },
   {
     symbol: 'VIX',
-    value: '14.32',
-    change: '-4.20%',
+    value: '16.42',
+    change: '-4.21%',
     isPositive: false,
     sparkline: [50, 48, 46, 44, 42, 41, 38, 35],
   },
@@ -129,3 +129,4 @@ export const GlobalMarketTicker: React.FC<GlobalMarketTickerProps> = ({
     </div>
   );
 };
+

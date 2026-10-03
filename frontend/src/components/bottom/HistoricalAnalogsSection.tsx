@@ -44,7 +44,7 @@ export const HistoricalAnalogsSection: React.FC<HistoricalAnalogsSectionProps> =
     <div className="fit-card p-6 select-none h-full flex flex-col justify-between">
       {/* Header */}
       <div className="flex items-center justify-between pb-3 border-b border-[#F1F5F9] mb-4">
-        <h2 className="text-[18px] font-semibold text-[#0F172A]">
+        <h2 className="text-[21px] font-bold text-[#0F172A]">
           Historical Analogs
         </h2>
         <button
@@ -57,7 +57,7 @@ export const HistoricalAnalogsSection: React.FC<HistoricalAnalogsSectionProps> =
       </div>
 
       {/* 3 Analog Cards */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {analogs.map((a) => (
           <div
             key={a.name}

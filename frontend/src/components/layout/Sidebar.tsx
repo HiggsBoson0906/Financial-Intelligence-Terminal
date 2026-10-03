@@ -145,7 +145,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
               <div className="overflow-hidden leading-tight">
                 <div className="text-[11px] font-bold text-slate-200 truncate font-sans">QUANT ANALYST</div>
-                <div className="text-[9px] text-slate-400 truncate">HEDGE FUND DEMO</div>
+                <div className="text-[9px] text-slate-400 truncate">HEDGE FUND PORTFOLIO</div>
               </div>
             </div>
           </div>

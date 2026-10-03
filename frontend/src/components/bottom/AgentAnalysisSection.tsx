@@ -10,7 +10,7 @@ export const AgentAnalysisSection: React.FC<AgentAnalysisSectionProps> = ({ onSe
     <div className="fit-card p-6 select-none h-full flex flex-col justify-between">
       {/* Header */}
       <div className="pb-4 border-b border-[#F1F5F9] mb-4">
-        <h2 className="text-[18px] font-semibold text-[#0F172A]">
+        <h2 className="text-[21px] font-bold text-[#0F172A]">
           Agent Analysis
         </h2>
       </div>

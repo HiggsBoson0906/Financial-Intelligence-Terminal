@@ -1,11 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MoreHorizontal, Plus, Minus, Locate, ExternalLink, X } from 'lucide-react';
+import { MoreHorizontal, Plus, Minus, Locate, ExternalLink, X, Maximize } from 'lucide-react';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { getEvents, getEventById, EventImpactData } from '../../services/eventApi';
+import { MarketView } from './MarketView';
+import { RiskView } from './RiskView';
+import { HistoricalAnalogsView } from './HistoricalAnalogsView';
 
 interface EventImpactMapProps {
   onOpenInfrastructureModal?: () => void;
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
 }
 
 const maptilerKey = import.meta.env.VITE_MAPTILER_API_KEY;
@@ -15,65 +20,68 @@ const MAP_STYLE = maptilerKey
 
 // --- FALLBACK MOCK DATA (DEMO DATA) ---
 const FALLBACK_EVENT: EventImpactData = {
-  id: "demo-event-001",
-  name: "Gulf Hurricane",
-  type: "STORM",
-  status: "OBSERVED",
-  category: "4",
-  wind_speed: 145,
-  pressure: 945,
+  id: "sim-event-001",
+  name: "Bay of Bengal Flood Event",
+  type: "FLOOD",
+  status: "SIMULATED",
+  category: "Extreme",
+  wind_speed: 85,
+  pressure: 980,
   updated_at: new Date().toISOString(),
-  source: "NOAA",
-  current_position: { lat: 27, lng: -92 },
+  source: "SIMULATION",
+  current_position: { lat: 22.8, lng: 89.2 },
   observed_path: {
     type: "Feature",
-    geometry: { type: "LineString", coordinates: [[-88, 23], [-90, 25], [-92, 27]] },
+    geometry: { type: "LineString", coordinates: [[89.0, 18.0], [89.0, 20.0], [89.2, 21.0]] },
     properties: {}
   },
   forecast_path: {
     type: "Feature",
-    geometry: { type: "LineString", coordinates: [[-92, 27], [-93.5, 28.5], [-94.5, 30.5]] },
+    geometry: { type: "LineString", coordinates: [[89.2, 21.0], [90.0, 23.0], [91.0, 24.0]] },
     properties: {}
   },
   forecast_cone: {
     type: "Feature",
     geometry: {
       type: "Polygon",
-      coordinates: [[[-92, 27], [-91, 30.5], [-93, 31.5], [-96, 30.5], [-92, 27]]]
+      coordinates: [[[87.5, 21.5], [87.5, 25.5], [91.5, 25.5], [91.5, 21.5], [87.5, 21.5]]]
     },
     properties: {}
   },
-  affected_regions: ["Texas", "Louisiana", "Gulf of Mexico"],
+  affected_regions: ["West Bengal", "Bangladesh", "Odisha"],
   infrastructure: {
     refineries: [
-      { id: 'ref-1', name: 'Port Arthur', lat: 29.88, lng: -93.94, status: 'AT RISK', assets: 'XOM · CVX · XLE', exposure: '$2.4M', impact: '+8.4%' },
-      { id: 'ref-2', name: 'Houston Refining', lat: 29.73, lng: -94.98, status: 'AT RISK', assets: 'MPC · PSX', exposure: '$1.8M', impact: '+6.1%' },
-      { id: 'ref-3', name: 'Garyville', lat: 30.06, lng: -90.62, status: 'SAFE', assets: 'VLO', exposure: '$0.5M', impact: '0%' }
+      { id: 'ref-1', name: 'Haldia Facility', lat: 22.02, lng: 88.06, status: 'AT RISK', assets: 'Asset A', exposure: '$2.4M', impact: '+8.4%' },
+      { id: 'ref-2', name: 'Paradip Facility', lat: 20.26, lng: 86.67, status: 'AT RISK', assets: 'Asset B', exposure: '$1.8M', impact: '+6.1%' },
+      { id: 'ref-3', name: 'Chittagong Industrial', lat: 22.35, lng: 91.78, status: 'SAFE', assets: 'Asset C', exposure: '$0.5M', impact: '0%' }
     ],
     ports: [
-      { id: 'port-1', name: 'Port of Houston', lat: 29.74, lng: -95.27 },
-      { id: 'port-2', name: 'Port of New Orleans', lat: 29.95, lng: -90.07 }
+      { id: 'port-1', name: 'Port of Kolkata', lat: 22.53, lng: 88.30 },
+      { id: 'port-2', name: 'Chittagong Port', lat: 22.31, lng: 91.80 }
     ],
     pipelines: {
       type: 'FeatureCollection',
       features: [
-        { type: 'Feature', geometry: { type: 'LineString', coordinates: [[-97, 28], [-95.3, 29.7], [-93.9, 29.9], [-90, 30]] }, properties: {} },
-        { type: 'Feature', geometry: { type: 'LineString', coordinates: [[-95.3, 29.7], [-95, 32]] }, properties: {} }
+        { type: 'Feature', geometry: { type: 'LineString', coordinates: [[86.67, 20.26], [88.06, 22.02], [88.30, 22.53]] }, properties: {} },
+        { type: 'Feature', geometry: { type: 'LineString', coordinates: [[88.30, 22.53], [91.80, 22.31]] }, properties: {} }
       ]
     }
   },
   portfolio_impact: {
     exposure: "$4.2M",
     risk_change: "+14.2%",
-    affected_assets: "Energy sector"
+    affected_assets: "Infrastructure sector"
   }
 };
 
 export const EventImpactMap: React.FC<EventImpactMapProps> = ({
   onOpenInfrastructureModal,
+  isExpanded = false,
+  onToggleExpand,
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<{ id: string, marker: maplibregl.Marker, type: string }[]>([]);
   
   const [activeTab, setActiveTab] = useState<'MAP' | 'MARKET' | 'RISK' | 'ANALOGS'>('MAP');
@@ -82,6 +90,7 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
   });
   const [selectedFeature, setSelectedFeature] = useState<any>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const [selectedAsset, setSelectedAsset] = useState<string | null>(null);
 
   // API State
   const [eventData, setEventData] = useState<EventImpactData | null>(null);
@@ -116,7 +125,26 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
 
   useEffect(() => {
     loadEventData();
-  }, []);
+    // Ensure map resizes when returning to the Map tab
+    if (activeTab === 'MAP' && mapRef.current) {
+      setTimeout(() => {
+        mapRef.current?.resize();
+      }, 0);
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    // Resize map when entering/exiting expanded mode
+    setTimeout(() => {
+      mapRef.current?.resize();
+    }, 250); // After CSS transition finishes
+  }, [isExpanded]);
+
+  const toggleExpand = () => {
+    if (onToggleExpand) {
+      onToggleExpand();
+    }
+  };
 
   // 2. Initialize Map ONCE and Render Data
   useEffect(() => {
@@ -163,7 +191,7 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
         const map = new maplibregl.Map({
           container: mapContainerRef.current!,
           style: newStyle,
-          center: [-92, 28.5],
+          center: [89.2, 22.8],
           zoom: 5.5,
           minZoom: 0,
           maxZoom: 18,
@@ -181,16 +209,16 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
 
           // Add GeoJSON sources & layers
           map.addSource('pipelines', { type: 'geojson', data: eventData.infrastructure.pipelines as any });
-          map.addLayer({ id: 'pipelines-layer', type: 'line', source: 'pipelines', paint: { 'line-color': '#94A3B8', 'line-width': 1.5, 'line-dasharray': [2, 2] } });
+          map.addLayer({ id: 'pipelines-layer', type: 'line', source: 'pipelines', paint: { 'line-color': '#EAB308', 'line-width': 2, 'line-dasharray': [2, 2] } });
           
           map.addSource('cone', { type: 'geojson', data: eventData.forecast_cone as any });
-          map.addLayer({ id: 'cone-layer', type: 'fill', source: 'cone', paint: { 'fill-color': '#F43F5E', 'fill-opacity': 0.15 } });
+          map.addLayer({ id: 'cone-layer', type: 'fill', source: 'cone', paint: { 'fill-color': '#3B82F6', 'fill-opacity': 0.25 } });
 
           map.addSource('observed-path', { type: 'geojson', data: eventData.observed_path as any });
-          map.addLayer({ id: 'observed-path-layer', type: 'line', source: 'observed-path', paint: { 'line-color': '#DC2626', 'line-width': 2 } });
+          map.addLayer({ id: 'observed-path-layer', type: 'line', source: 'observed-path', paint: { 'line-color': '#2563EB', 'line-width': 2 } });
           
           map.addSource('forecast-path', { type: 'geojson', data: eventData.forecast_path as any });
-          map.addLayer({ id: 'forecast-path-layer', type: 'line', source: 'forecast-path', paint: { 'line-color': '#2563EB', 'line-width': 2, 'line-dasharray': [4, 4] } });
+          map.addLayer({ id: 'forecast-path-layer', type: 'line', source: 'forecast-path', paint: { 'line-color': '#60A5FA', 'line-width': 2, 'line-dasharray': [4, 4] } });
 
           // DOM Markers
           const addMarker = (lng: number, lat: number, el: HTMLElement, type: string, onClick?: () => void) => {
@@ -201,23 +229,25 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
             markersRef.current.push({ id: type + '-' + markersRef.current.length, marker, type });
           };
 
-          // Storm Marker
+          // Storm Marker (Simulated Flood Event)
           const stormEl = document.createElement('div');
           stormEl.className = 'relative group cursor-pointer';
-          stormEl.innerHTML = `<div class="absolute inset-0 bg-[#DC2626] rounded-full animate-ping opacity-30 scale-150" style="animation-duration: 2s"></div><div class="w-4 h-4 bg-[#DC2626] rounded-full flex items-center justify-center border-2 border-white relative z-10 shadow-sm"><div class="w-1 h-1 bg-white rounded-full"></div></div>`;
+          stormEl.innerHTML = `<div class="w-5 h-5 flex items-center justify-center text-[18px]">🔵</div>`;
           addMarker(eventData.current_position.lng, eventData.current_position.lat, stormEl, 'storm', () => setSelectedFeature({ type: 'STORM' }));
 
-          // Refineries
+          // Refineries (Demo Industrial Facility)
           eventData.infrastructure.refineries.forEach(ref => {
             const el = document.createElement('div');
-            el.className = 'w-3 h-3 bg-[#D97706] border-[1.5px] border-white shadow-sm cursor-pointer hover:scale-110 transition-transform';
+            el.className = 'text-[14px] text-gray-800 cursor-pointer hover:scale-125 transition-transform drop-shadow-md';
+            el.innerHTML = `■`;
             addMarker(ref.lng, ref.lat, el, 'refineries', () => setSelectedFeature({ type: 'REFINERY', data: ref }));
           });
 
-          // Ports
+          // Ports (Demo Port)
           eventData.infrastructure.ports.forEach(port => {
             const el = document.createElement('div');
-            el.className = 'w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[9px] border-b-[#2563EB] cursor-pointer hover:scale-110 transition-transform origin-bottom';
+            el.className = 'text-[14px] text-gray-800 cursor-pointer hover:scale-125 transition-transform drop-shadow-md';
+            el.innerHTML = `▲`;
             el.title = port.name;
             addMarker(port.lng, port.lat, el, 'ports');
           });
@@ -269,35 +299,47 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
 
   const handleZoomIn = () => mapRef.current?.zoomIn({ duration: 300 });
   const handleZoomOut = () => mapRef.current?.zoomOut({ duration: 300 });
-  const handleReset = () => mapRef.current?.flyTo({ center: [-92, 28.5], zoom: 5.5, duration: 800 });
+  const handleReset = () => mapRef.current?.flyTo({ center: [89.2, 22.8], zoom: 5.5, duration: 800 });
 
   return (
-    <div className="select-none">
+    <div 
+      ref={containerRef}
+      id="event-impact-analysis-container"
+      className="select-none relative w-full h-full flex flex-col flex-1"
+    >
       {/* Panel Sub-header */}
       <div className="flex flex-wrap items-center justify-between pb-4 border-b border-[#F1F5F9] mb-4">
         <div className="flex items-center gap-6">
-          <h2 className="text-[18px] font-semibold text-[#0F172A] flex items-center gap-3">
+          <h2 className="text-[21px] font-bold text-[#0F172A] flex items-center gap-3">
             Event Impact Analysis
             {isDemoData && !isLoadingEvent && (
-              <span className="text-[10px] font-bold text-[#D97706] bg-[#FEF3C7] px-2 py-0.5 rounded border border-[#FDE68A]">
-                DEMO DATA
+              <span className="text-[10px] font-bold text-[#D97706] bg-[#FEF3C7] px-2 py-0.5 rounded uppercase tracking-wider">
+                SIMULATION
               </span>
             )}
           </h2>
           <div className="flex items-center gap-5 text-[13px] font-medium text-[#64748B]">
-            {['MAP', 'MARKET', 'RISK', 'ANALOGS'].map(tab => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab as any)}
-                className={`hover:text-[#0F172A] transition-colors ${activeTab === tab ? 'text-[#2563EB] font-semibold' : ''}`}
-              >
-                {tab === 'MAP' ? 'Map View' : tab === 'MARKET' ? 'Market View' : tab === 'RISK' ? 'Risk View' : 'Historical Analogs'}
-              </button>
-            ))}
+            {['MAP', 'MARKET', 'RISK', 'ANALOGS'].map(tab => {
+              const label = tab === 'MAP' ? 'Map View' : tab === 'MARKET' ? 'Market View' : tab === 'RISK' ? 'Risk View' : 'Historical Analogs';
+              const isActive = activeTab === tab;
+              return (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab as any)}
+                  className={`px-3 py-1.5 rounded-md text-[13px] font-medium transition-all ${
+                    isActive 
+                      ? 'bg-blue-50 text-[#2563EB] border border-blue-200 shadow-sm' 
+                      : 'text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] border border-transparent'
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Legend status indicators */}
+        {/* Legend status indicators & Fullscreen Button */}
         <div className="flex items-center gap-3 text-[11px] font-medium text-[#64748B]">
           <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-[#2563EB]" />
@@ -307,18 +349,18 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
             <span className="w-2 h-2 rounded-full bg-[#D97706]" />
             Model
           </span>
-          <span className="flex items-center gap-1.5">
+          <span className="flex items-center gap-1.5 pr-4 border-r border-[#E2E8F0]">
             <span className="w-2 h-2 rounded-full bg-[#16A34A]" />
             Simulation
           </span>
-          <button className="text-[#94A3B8] hover:text-[#0F172A] ml-1">
+          <button className="text-[#94A3B8] hover:text-[#0F172A] ml-1 mr-2">
             <MoreHorizontal className="w-4 h-4" />
           </button>
         </div>
       </div>
 
       {apiError && !eventData && (
-        <div className="w-full h-[420px] rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex flex-col items-center justify-center">
+        <div className="w-full flex-1 min-h-[420px] rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex flex-col items-center justify-center">
           <div className="text-[13px] font-medium text-[#475569] mb-3">Unable to load event intelligence</div>
           <button onClick={loadEventData} className="px-4 py-1.5 bg-white border border-[#CBD5E1] rounded text-[12px] font-medium text-[#0F172A] hover:bg-[#F1F5F9] transition-colors">
             Retry
@@ -327,11 +369,15 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
       )}
 
       {/* Main Geographic Map Visualizer */}
-      {!apiError && (
-      <div className="relative w-full h-[420px] min-h-[420px] rounded-xl overflow-hidden bg-[#E4EAE1] border border-[#E2E8F0]">
+      {eventData && (
+      <div className={`relative w-full flex-1 rounded-xl overflow-hidden bg-[#F8FAFC] border border-[#E2E8F0] flex flex-col transition-all duration-300 ease-in-out ${
+        isExpanded ? 'min-h-[650px]' : 'min-h-[420px]'
+      }`}>
         
-        {/* The pure MapLibre container */}
-        <div ref={mapContainerRef} className="absolute inset-0 w-full h-full" style={{ minHeight: '420px' }} />
+        {/* Map View Layer */}
+        <div style={{ display: activeTab === 'MAP' ? 'block' : 'none' }} className="absolute inset-0 w-full h-full bg-[#E4EAE1]">
+          {/* The pure MapLibre container */}
+          <div ref={mapContainerRef} className="absolute inset-0 w-full h-full" style={{ minHeight: '420px' }} />
 
         {/* Loading Overlay */}
         {(isLoadingEvent || !isMapLoaded) && (
@@ -345,20 +391,17 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
         {/* Floating Top-Left Card: Active Hurricane Information */}
         {eventData && (
         <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-xl p-3 shadow-sm border border-[#E2E8F0] flex items-center gap-3 pointer-events-auto z-20">
-          <div className="w-9 h-9 rounded-lg bg-[#FEE2E2] flex items-center justify-center shrink-0 text-[#DC2626]">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 6a6 6 0 0 1 5.66 4M12 18a6 6 0 0 1-5.66-4M6.34 10A6 6 0 0 1 12 6M17.66 14A6 6 0 0 1 12 18" />
-              <circle cx="12" cy="12" r="2" fill="currentColor" />
-            </svg>
+          <div className="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center shrink-0 text-blue-600">
+            <span className="text-[20px]">🌊</span>
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-[14px] text-[#0F172A]">{eventData.name}</span>
-              <span className="text-[10px] font-bold text-[#DC2626] bg-[#FEE2E2] px-1.5 py-0.5 rounded uppercase">
+              <span className="font-semibold text-[14px] text-[#0F172A]">🌊 {eventData.name}</span>
+              <span className="text-[10px] font-bold text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded uppercase">
                 {eventData.status}
               </span>
             </div>
-            <div className="text-[12px] font-medium text-[#475569]">Category {eventData.category}</div>
+            <div className="text-[12px] font-medium text-[#475569]">{eventData.category}</div>
             <div className="text-[11px] text-[#94A3B8] font-mono-tech mt-0.5">
               {eventData.source} • {new Date(eventData.updated_at).toLocaleTimeString('en-US', { timeZone: 'UTC', hour: '2-digit', minute:'2-digit' })} UTC
             </div>
@@ -383,24 +426,24 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
         {/* Floating Map Legend (Top-Right) */}
         <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-3 shadow-sm border border-[#E2E8F0] text-[12px] space-y-2.5 text-[#475569] font-medium pointer-events-auto z-20">
           <button onClick={() => toggleLayer('storm')} className={`flex items-center gap-2 transition-opacity ${layersVisible.storm ? 'opacity-100' : 'opacity-40'}`}>
-            <span className="w-4 h-0.5 bg-[#DC2626] rounded inline-block" />
-            <span>Storm Path (CAT {eventData?.category || '4'})</span>
+            <span className="text-[14px]">🔵</span>
+            <span>Simulated Flood Event</span>
           </button>
           <button onClick={() => toggleLayer('cone')} className={`flex items-center gap-2 transition-opacity ${layersVisible.cone ? 'opacity-100' : 'opacity-40'}`}>
-            <span className="w-3 h-3 bg-[#F43F5E]/20 border border-[#F43F5E]/50 rounded-xs inline-block" />
-            <span>Forecast Cone</span>
-          </button>
-          <button onClick={() => toggleLayer('refineries')} className={`flex items-center gap-2 transition-opacity ${layersVisible.refineries ? 'opacity-100' : 'opacity-40'}`}>
-            <span className="w-2.5 h-2.5 bg-[#D97706] rounded-xs inline-block border border-white" />
-            <span>Refinery</span>
+            <span className="text-[14px]">🟦</span>
+            <span>Simulated Flood Zone</span>
           </button>
           <button onClick={() => toggleLayer('ports')} className={`flex items-center gap-2 transition-opacity ${layersVisible.ports ? 'opacity-100' : 'opacity-40'}`}>
-            <span className="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-b-[8px] border-b-[#2563EB] inline-block" />
+            <span className="text-[14px] text-gray-800">▲</span>
             <span>Port</span>
           </button>
+          <button onClick={() => toggleLayer('refineries')} className={`flex items-center gap-2 transition-opacity ${layersVisible.refineries ? 'opacity-100' : 'opacity-40'}`}>
+            <span className="text-[14px] text-gray-800">■</span>
+            <span>Industrial Facility</span>
+          </button>
           <button onClick={() => toggleLayer('pipelines')} className={`flex items-center gap-2 transition-opacity ${layersVisible.pipelines ? 'opacity-100' : 'opacity-40'}`}>
-            <span className="w-4 border-b border-dashed border-[#94A3B8] inline-block" />
-            <span>Pipeline</span>
+            <span className="text-[14px]">⚡</span>
+            <span>Energy Infrastructure</span>
           </button>
         </div>
 
@@ -419,25 +462,25 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
         {selectedFeature && selectedFeature.type === 'STORM' && eventData && (
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-xl border border-[#E2E8F0] w-64 overflow-hidden animate-in zoom-in-95 duration-200 pointer-events-auto z-50">
             <div className="bg-[#F8FAFC] px-4 py-3 border-b border-[#E2E8F0] flex items-center justify-between">
-              <span className="font-semibold text-[#0F172A] text-[13px] uppercase">{eventData.name}</span>
+              <span className="font-semibold text-[#0F172A] text-[13px] uppercase">BAY OF BENGAL FLOOD</span>
               <button onClick={() => setSelectedFeature(null)} className="text-[#64748B] hover:text-[#0F172A]"><X className="w-3.5 h-3.5" /></button>
             </div>
             <div className="p-4 space-y-3 text-[12px] tabular-data">
               <div className="flex justify-between items-center pb-2 border-b border-[#F1F5F9]">
-                <span className="text-[#64748B]">Status</span>
-                <span className="font-bold text-[#DC2626] bg-[#FEE2E2] px-1.5 py-0.5 rounded text-[10px]">{eventData.status} (CAT {eventData.category})</span>
+                <span className="text-[#64748B]">Severity</span>
+                <span className="font-bold text-[#DC2626] bg-[#FEE2E2] px-1.5 py-0.5 rounded text-[10px]">Severe</span>
               </div>
               <div className="flex justify-between items-center pb-2 border-b border-[#F1F5F9]">
-                <span className="text-[#64748B]">Wind</span>
-                <span className="font-medium text-[#0F172A]">{eventData.wind_speed} mph</span>
+                <span className="text-[#64748B]">Affected Region</span>
+                <span className="font-medium text-[#0F172A]">Eastern India</span>
               </div>
               <div className="flex justify-between items-center pb-2 border-b border-[#F1F5F9]">
-                <span className="text-[#64748B]">Pressure</span>
-                <span className="font-medium text-[#0F172A]">{eventData.pressure} hPa</span>
+                <span className="text-[#64748B]">Affected Areas</span>
+                <span className="font-medium text-[#0F172A] text-right ml-2 leading-tight">Odisha, West Bengal, Bangladesh</span>
               </div>
               <div className="flex justify-between items-center pb-2 border-b border-[#F1F5F9]">
-                <span className="text-[#64748B]">Portfolio Exposure</span>
-                <span className="font-medium text-[#DC2626]">{eventData.portfolio_impact.exposure}</span>
+                <span className="text-[#64748B]">Data State</span>
+                <span className="font-medium text-[#D97706]">SIMULATION</span>
               </div>
               <button className="w-full mt-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white py-1.5 rounded-md font-medium transition-colors">
                 Analyze Impact
@@ -477,6 +520,43 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
             </div>
           </div>
         )}
+        </div> {/* End Map View Layer */}
+
+        {/* Other Views Layer */}
+        {activeTab === 'MARKET' && (
+          <MarketView 
+            isSimulation={isDemoData} 
+            selectedAsset={selectedAsset} 
+            onSelectAsset={setSelectedAsset} 
+          />
+        )}
+        {activeTab === 'RISK' && (
+          <RiskView isSimulation={isDemoData} selectedAsset={selectedAsset} />
+        )}
+        {activeTab === 'ANALOGS' && (
+          <HistoricalAnalogsView isSimulation={isDemoData} />
+        )}
+
+        {/* Bottom Floating Expand Button */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 pointer-events-auto">
+          <button 
+            onClick={toggleExpand}
+            className="flex items-center gap-2 px-4 py-1.5 bg-white/95 backdrop-blur-sm border border-[#E2E8F0] shadow-sm hover:shadow hover:bg-white rounded-full text-[#475569] hover:text-[#0F172A] transition-all font-medium text-[11px] uppercase tracking-wider"
+            title={isExpanded ? "Collapse analysis" : "Expand analysis"}
+          >
+            {isExpanded ? (
+              <>
+                <X size={14} />
+                Collapse
+              </>
+            ) : (
+              <>
+                <Maximize size={14} />
+                Expand
+              </>
+            )}
+          </button>
+        </div>
       </div>
       )}
     </div>

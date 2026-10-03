@@ -1,264 +1,325 @@
 import React from 'react';
-import { ArrowRight, TrendingUp } from 'lucide-react';
+
+// Data models for risk & hedge charts
+// Architected so data can be replaced by:
+// GET /api/v1/risk/{symbol} or GET /api/v1/risk/portfolio
+export interface RiskTrendPoint {
+  time: string;
+  varValue: number; // in $K
+}
+
+export interface HedgeEffectPoint {
+  stage: string;
+  exposure: number; // relative risk %
+}
 
 interface AnalyticalChainProps {
   onSelectNode?: (nodeName: string) => void;
+  riskTrendData?: RiskTrendPoint[];
+  hedgeEffectData?: HedgeEffectPoint[];
 }
 
-export const AnalyticalChain: React.FC<AnalyticalChainProps> = ({ onSelectNode }) => {
+const DEFAULT_RISK_TREND: RiskTrendPoint[] = [
+  { time: '9 AM', varValue: 162 },
+  { time: '10 AM', varValue: 168 },
+  { time: '11 AM', varValue: 175 },
+  { time: '12 PM', varValue: 184 },
+  { time: '1 PM', varValue: 179 },
+  { time: '2 PM', varValue: 171 },
+  { time: '3 PM', varValue: 166 },
+];
+
+export const AnalyticalChain: React.FC<AnalyticalChainProps> = ({
+  onSelectNode,
+  riskTrendData = DEFAULT_RISK_TREND,
+}) => {
+  // SVG coordinates calculation for Quant Risk line chart
+  const minVal = 155;
+  const maxVal = 190;
+  const width = 140;
+  const height = 48;
+  const xStart = 8;
+  const xEnd = width - 8;
+  const yTop = 10;
+  const yBottom = 34;
+
+  const points = riskTrendData.map((pt, i) => {
+    const x = xStart + (i / Math.max(riskTrendData.length - 1, 1)) * (xEnd - xStart);
+    const y = yBottom - ((pt.varValue - minVal) / (maxVal - minVal)) * (yBottom - yTop);
+    return { x: Number(x.toFixed(1)), y: Number(y.toFixed(1)), ...pt };
+  });
+
+  const polylinePoints = points.map(p => `${p.x},${p.y}`).join(' ');
+  const peakPoint = points.reduce((prev, curr) => (curr.varValue > prev.varValue ? curr : prev), points[0]);
+
   return (
-    <div className="mt-4 pt-3 border-t border-[#F1F5F9] select-none">
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-0 divide-y md:divide-y-0 md:divide-x divide-[#F1F5F9] items-stretch relative border border-[#F1F5F9] rounded-xl overflow-hidden">
-        {/* Node 1: EVENT */}
-        <div
-          onClick={() => onSelectNode?.('EVENT')}
-          className="p-4 hover:bg-[#F8FAFC] transition-all cursor-pointer flex flex-col justify-between group"
-        >
-          <div>
-            <div className="text-[14px] font-semibold text-[#0F172A] mb-1.5">
-              Event
-            </div>
-            {/* Hurricane radar graphic */}
-            <div className="w-full h-14 rounded bg-[#0F172A] relative overflow-hidden flex items-center justify-center mb-1.5">
-              {/* Spiral radar simulation */}
-              <div className="w-12 h-12 rounded-full border border-red-500/40 animate-ping absolute" />
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#F43F5E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="animate-spin" style={{ animationDuration: '8s' }}>
-                <path d="M12 6a6 6 0 0 1 5.66 4M12 18a6 6 0 0 1-5.66-4M6.34 10A6 6 0 0 1 12 6M17.66 14A6 6 0 0 1 12 18" />
-                <circle cx="12" cy="12" r="2" fill="#F43F5E" />
-              </svg>
-            </div>
-            <div className="font-bold text-xs text-[#0F172A] leading-tight">
-              Gulf Hurricane
-            </div>
-            <div className="text-[11px] text-[#475569]">Category 4</div>
-          </div>
-
-          <div className="mt-2 pt-1 border-t border-[#F1F5F9] flex items-center justify-between">
-            <span className="text-[9px] font-bold text-[#DC2626] bg-[#FEE2E2] px-1.5 py-0.5 rounded uppercase">
-              Observed
-            </span>
-            <span className="text-[9px] text-[#94A3B8] font-plex-mono">12:41 UTC</span>
-          </div>
+    <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-[#F1F5F9] items-stretch w-full overflow-hidden">
+      
+      {/* Node 1: PORTFOLIO */}
+      <div
+        onClick={() => onSelectNode?.('PORTFOLIO')}
+        className="px-4 py-3 hover:bg-[#F8FAFC] transition-colors cursor-pointer group flex flex-col justify-between"
+      >
+        <div className="text-[16px] font-semibold text-[#0F172A] mb-1.5 flex items-center justify-between">
+          <span>Portfolio</span>
+          <span className="text-[11px] font-medium text-[#64748B]">Allocation</span>
         </div>
-
-        {/* Node 2: REGION / INDUSTRY */}
-        <div
-          onClick={() => onSelectNode?.('REGION')}
-          className="p-4 hover:bg-[#F8FAFC] transition-all cursor-pointer flex flex-col justify-between group"
-        >
-          <div>
-            <div className="text-[14px] font-semibold text-[#0F172A] mb-1.5">
-              Region / Industry
-            </div>
-            {/* Refinery Complex Graphic */}
-            <div className="w-full h-14 rounded bg-gradient-to-br from-[#1E293B] to-[#334155] relative overflow-hidden flex items-end justify-center p-1 mb-1.5">
-              {/* Silhouette of refinery towers */}
-              <div className="flex items-end gap-1 opacity-80">
-                <div className="w-2 h-8 bg-amber-400/80 rounded-t-xs" />
-                <div className="w-3 h-10 bg-amber-500 rounded-t-xs" />
-                <div className="w-1.5 h-6 bg-slate-300 rounded-t-xs" />
-                <div className="w-4 h-11 bg-amber-400 rounded-t-xs" />
-                <div className="w-2 h-7 bg-amber-600 rounded-t-xs" />
-              </div>
-            </div>
-            <div className="font-bold text-xs text-[#0F172A] leading-tight">
-              Gulf Energy Infrastructure
-            </div>
-            <div className="text-[10px] text-[#DC2626] font-semibold mt-0.5">
-              High Disruption Risk
-            </div>
-          </div>
-
-          <div className="mt-2 pt-1 border-t border-[#F1F5F9] flex gap-1 flex-wrap text-[9px] text-[#64748B]">
-            <span className="bg-[#F1F5F9] px-1 py-0.5 rounded">Refineries</span>
-            <span className="bg-[#F1F5F9] px-1 py-0.5 rounded">Ports</span>
-            <span className="bg-[#F1F5F9] px-1 py-0.5 rounded">Pipelines</span>
-          </div>
-        </div>
-
-        {/* Node 3: KEY ASSETS */}
-        <div
-          onClick={() => onSelectNode?.('ASSETS')}
-          className="p-4 hover:bg-[#F8FAFC] transition-all cursor-pointer flex flex-col justify-between group"
-        >
-          <div>
-            <div className="text-[14px] font-semibold text-[#0F172A] mb-1.5">
-              Key Assets
-            </div>
-            <div className="space-y-1.5 tabular-data text-[12px]">
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1 font-bold text-[#0F172A]">
-                  <span className="w-2 h-2 rounded-full bg-red-600 inline-block" /> XOM
-                </span>
-                <span className="text-[#16A34A] font-semibold">+1.9%</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1 font-bold text-[#0F172A]">
-                  <span className="w-2 h-2 rounded-full bg-blue-600 inline-block" /> CVX
-                </span>
-                <span className="text-[#16A34A] font-semibold">+2.4%</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1 font-bold text-[#0F172A]">
-                  <span className="w-2 h-2 rounded-full bg-amber-600 inline-block" /> COP
-                </span>
-                <span className="text-[#16A34A] font-semibold">+2.1%</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1 font-bold text-[#0F172A]">
-                  <span className="w-2 h-2 rounded-full bg-amber-500 inline-block" /> WTI
-                </span>
-                <span className="text-[#16A34A] font-semibold">+2.8%</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-2 pt-1 border-t border-[#F1F5F9] text-[9px] text-[#64748B]">
-            Supply Tightening
-          </div>
-        </div>
-
-        {/* Node 4: PORTFOLIO */}
-        <div
-          onClick={() => onSelectNode?.('PORTFOLIO')}
-          className="p-4 hover:bg-[#F8FAFC] transition-all cursor-pointer flex flex-col justify-between group"
-        >
-          <div>
-            <div className="text-[14px] font-semibold text-[#0F172A] mb-1.5">
-              Portfolio
-            </div>
-            {/* Donut chart simulation */}
-            <div className="flex items-center gap-2 my-1">
-              <svg width="40" height="40" viewBox="0 0 36 36" className="shrink-0 -rotate-90">
+        
+        {/* Horizontal composition: ~38% Donut on Left, ~62% Info on Right */}
+        <div className="flex items-center w-full my-auto">
+          {/* Left: Donut Chart (~64px, vertically centered) */}
+          <div className="w-[38%] shrink-0 flex items-center justify-center">
+            <div className="relative w-16 h-16 flex items-center justify-center">
+              <svg width="64" height="64" viewBox="0 0 36 36" className="shrink-0">
                 {/* Background circle */}
-                <circle cx="18" cy="18" r="14" fill="none" stroke="#E2E8F0" strokeWidth="4" />
-                {/* Energy 43% */}
-                <circle
-                  cx="18"
-                  cy="18"
-                  r="14"
-                  fill="none"
-                  stroke="#F43F5E"
-                  strokeWidth="4"
-                  strokeDasharray="38 100"
-                  strokeDashoffset="0"
-                />
-                {/* Tech 28% */}
-                <circle
-                  cx="18"
-                  cy="18"
-                  r="14"
-                  fill="none"
-                  stroke="#3B82F6"
-                  strokeWidth="4"
-                  strokeDasharray="25 100"
-                  strokeDashoffset="-38"
-                />
-                {/* Finance 15% */}
-                <circle
-                  cx="18"
-                  cy="18"
-                  r="14"
-                  fill="none"
-                  stroke="#F59E0B"
-                  strokeWidth="4"
-                  strokeDasharray="13 100"
-                  strokeDashoffset="-63"
-                />
+                <circle cx="18" cy="18" r="14" fill="none" stroke="#F1F5F9" strokeWidth="4.5" />
+                {/* Segments rotated from top (-90deg) */}
+                <g transform="rotate(-90 18 18)">
+                  {/* Energy 43% */}
+                  <circle
+                    cx="18"
+                    cy="18"
+                    r="14"
+                    fill="none"
+                    stroke="#F43F5E"
+                    strokeWidth="4.5"
+                    pathLength="100"
+                    strokeDasharray="43 100"
+                    strokeDashoffset="0"
+                  />
+                  {/* Tech 28% */}
+                  <circle
+                    cx="18"
+                    cy="18"
+                    r="14"
+                    fill="none"
+                    stroke="#3B82F6"
+                    strokeWidth="4.5"
+                    pathLength="100"
+                    strokeDasharray="28 100"
+                    strokeDashoffset="-43"
+                  />
+                  {/* Finance 15% */}
+                  <circle
+                    cx="18"
+                    cy="18"
+                    r="14"
+                    fill="none"
+                    stroke="#F59E0B"
+                    strokeWidth="4.5"
+                    pathLength="100"
+                    strokeDasharray="15 100"
+                    strokeDashoffset="-71"
+                  />
+                  {/* Other 14% */}
+                  <circle
+                    cx="18"
+                    cy="18"
+                    r="14"
+                    fill="none"
+                    stroke="#CBD5E1"
+                    strokeWidth="4.5"
+                    pathLength="100"
+                    strokeDasharray="14 100"
+                    strokeDashoffset="-86"
+                  />
+                </g>
               </svg>
-
-              <div className="leading-tight">
-                <div className="text-[11px] font-bold text-[#0F172A]">Energy</div>
-                <div className="text-[15px] font-semibold text-[#F43F5E] tabular-data">43%</div>
-                <div className="text-[9px] text-[#94A3B8]">Your Portfolio</div>
+              {/* Center Donut Label */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-[12px] font-bold text-[#0F172A] leading-none tabular-nums">43%</span>
               </div>
             </div>
+          </div>
 
-            {/* Micro legend */}
-            <div className="space-y-0.5 text-[9px] font-plex-mono text-[#64748B]">
-              <div className="flex justify-between">
-                <span>■ Energy</span>
-                <span className="font-semibold text-[#0F172A]">43%</span>
+          {/* Right: Portfolio breakdown */}
+          <div className="w-[62%] pl-3 min-w-0 flex flex-col justify-center">
+            <div className="flex items-baseline justify-between mb-1 pb-1 border-b border-[#F1F5F9]">
+              <div>
+                <span className="text-[13px] font-semibold text-[#0F172A] leading-tight block">Energy</span>
+                <span className="text-[11px] text-[#64748B] font-medium leading-none block">Your Portfolio</span>
               </div>
-              <div className="flex justify-between">
-                <span>■ Tech</span>
-                <span className="font-semibold text-[#0F172A]">28%</span>
+              <span className="text-[18px] font-bold text-[#F43F5E] tabular-nums leading-tight">43%</span>
+            </div>
+
+            <div className="space-y-0.5 text-[12px] font-medium text-[#475569]">
+              <div className="flex justify-between items-center">
+                <span className="flex items-center truncate">
+                  <span className="w-1.5 h-1.5 rounded-sm bg-[#F43F5E] mr-1.5 shrink-0" />
+                  Energy
+                </span>
+                <span className="font-semibold text-[#0F172A] tabular-nums">43%</span>
               </div>
-              <div className="flex justify-between">
-                <span>■ Finance</span>
-                <span className="font-semibold text-[#0F172A]">15%</span>
+              <div className="flex justify-between items-center">
+                <span className="flex items-center truncate">
+                  <span className="w-1.5 h-1.5 rounded-sm bg-[#3B82F6] mr-1.5 shrink-0" />
+                  Tech
+                </span>
+                <span className="font-semibold text-[#0F172A] tabular-nums">28%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="flex items-center truncate">
+                  <span className="w-1.5 h-1.5 rounded-sm bg-[#F59E0B] mr-1.5 shrink-0" />
+                  Finance
+                </span>
+                <span className="font-semibold text-[#0F172A] tabular-nums">15%</span>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Node 5: QUANT RISK */}
-        <div
-          onClick={() => onSelectNode?.('RISK')}
-          className="p-4 hover:bg-[#F8FAFC] transition-all cursor-pointer flex flex-col justify-between group"
-        >
-          <div>
-            <div className="text-[14px] font-semibold text-[#0F172A] mb-1.5">
-              Quant Risk
-            </div>
-            
-            <div className="mb-2">
-              <span className="text-[9px] text-[#64748B] block">VaR (95%)</span>
-              <div className="flex items-baseline gap-1">
-                <span className="tabular-data font-semibold text-[15px] text-[#0F172A]">$184K</span>
-                <span className="text-[12px] font-medium text-[#DC2626] tabular-data">+14.2%</span>
+      {/* Node 2: QUANT RISK */}
+      <div
+        onClick={() => onSelectNode?.('RISK')}
+        className="px-4 py-3 hover:bg-[#F8FAFC] transition-colors cursor-pointer group flex flex-col justify-between"
+      >
+        <div className="flex items-center justify-between mb-1.5">
+          <div className="text-[16px] font-semibold text-[#0F172A]">Quant Risk</div>
+          <span className="text-[10px] font-semibold text-[#D97706] bg-[#FEF3C7] px-2 py-0.5 rounded uppercase tracking-wider">
+            Model
+          </span>
+        </div>
+        
+        {/* Horizontal composition: Metrics on Left, Risk Trend Line Chart on Right */}
+        <div className="grid grid-cols-2 gap-2.5 items-center my-auto">
+          {/* Left Column: Metrics */}
+          <div className="space-y-1.5 min-w-0">
+            <div>
+              <span className="text-[12px] text-[#64748B] font-medium block leading-none mb-0.5">VaR (95%)</span>
+              <div className="flex items-baseline gap-1.5">
+                <span className="tabular-nums font-bold text-[18px] text-[#0F172A] leading-tight">$184K</span>
+                <span className="text-[12px] font-semibold text-[#DC2626] tabular-nums">+11.4%</span>
               </div>
             </div>
 
             <div>
-              <span className="text-[9px] text-[#64748B] block">Expected Shortfall</span>
-              <div className="flex items-baseline gap-1">
-                <span className="font-plex-mono font-bold text-xs text-[#0F172A]">$241K</span>
-                <span className="text-[10px] font-bold text-[#DC2626] font-plex-mono">+18.7%</span>
+              <span className="text-[12px] text-[#64748B] font-medium block leading-none mb-0.5">Expected Shortfall</span>
+              <div className="flex items-baseline gap-1.5">
+                <span className="tabular-nums font-bold text-[18px] text-[#0F172A] leading-tight">$241K</span>
+                <span className="text-[12px] font-semibold text-[#DC2626] tabular-nums">+18.7%</span>
               </div>
             </div>
           </div>
 
-          <div className="mt-2 pt-1 border-t border-[#F1F5F9]">
-            <span className="text-[9px] font-bold text-[#D97706] bg-[#FEF3C7] px-1.5 py-0.5 rounded uppercase">
-              Model
-            </span>
-          </div>
-        </div>
-
-        {/* Node 6: STRATEGY */}
-        <div
-          onClick={() => onSelectNode?.('STRATEGY')}
-          className="p-4 hover:bg-[#F8FAFC] transition-all cursor-pointer flex flex-col justify-between group"
-        >
-          <div>
-            <div className="text-[14px] font-semibold text-[#0F172A] mb-1.5">
-              Strategy
+          {/* Right Column: Risk Trend Chart */}
+          <div className="flex flex-col justify-center bg-white border border-[#E2E8F0]/70 rounded p-1.5">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-[#64748B] uppercase tracking-wider mb-0.5">
+              <span>Risk Trend</span>
+              <span className="text-[10px] text-[#94A3B8] font-medium">Demo Data</span>
             </div>
-            
-            {/* Sparkline curve upward */}
-            <div className="w-full h-8 flex items-center mb-1">
-              <svg width="100%" height="24" viewBox="0 0 80 24" fill="none">
-                <path d="M 0,20 Q 20,18 40,10 T 80,4" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" />
-                <circle cx="80" cy="4" r="2.5" fill="#16A34A" />
+            <div className="w-full h-[46px]">
+              <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-visible">
+                {/* Subtle grid lines */}
+                <line x1={xStart} y1="18" x2={xEnd} y2="18" stroke="#F1F5F9" strokeWidth="1" strokeDasharray="2 2" />
+                <line x1={xStart} y1="28" x2={xEnd} y2="28" stroke="#F1F5F9" strokeWidth="1" strokeDasharray="2 2" />
+                
+                {/* Risk trend polyline */}
+                <polyline
+                  fill="none"
+                  stroke="#DC2626"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  points={polylinePoints}
+                />
+                
+                {/* Peak point indicator */}
+                <circle cx={peakPoint.x} cy={peakPoint.y} r="2.5" fill="#DC2626" />
+                <text
+                  x={peakPoint.x}
+                  y={peakPoint.y - 4}
+                  fontSize="9.5"
+                  fontWeight="700"
+                  fill="#DC2626"
+                  textAnchor="middle"
+                >
+                  $184K
+                </text>
+
+                {/* X-axis labels */}
+                <text x={xStart} y="44" fontSize="9" fill="#94A3B8" textAnchor="start">9A</text>
+                <text x={peakPoint.x} y="44" fontSize="9" fill="#94A3B8" textAnchor="middle">12P</text>
+                <text x={xEnd} y="44" fontSize="9" fill="#94A3B8" textAnchor="end">3P</text>
               </svg>
             </div>
-
-            <div className="font-bold text-xs text-[#0F172A] leading-tight">
-              Simulated Hedge
-            </div>
-            <div className="font-plex-mono font-extrabold text-sm text-[#16A34A] mt-0.5">
-              -7.4%
-            </div>
-          </div>
-
-          <div className="mt-2 pt-1 border-t border-[#F1F5F9]">
-            <span className="text-[9px] font-bold text-[#16A34A] bg-[#DCFCE7] px-1.5 py-0.5 rounded uppercase">
-              Simulation
-            </span>
           </div>
         </div>
       </div>
+
+      {/* Node 3: STRATEGY */}
+      <div
+        id="strategy"
+        onClick={() => onSelectNode?.('STRATEGY')}
+        className="px-4 py-3 hover:bg-[#F8FAFC] transition-colors cursor-pointer group flex flex-col justify-between"
+      >
+        <div className="flex items-center justify-between mb-1.5">
+          <div className="text-[16px] font-semibold text-[#0F172A]">Strategy</div>
+          <span className="text-[10px] font-semibold text-[#16A34A] bg-[#DCFCE7] px-2 py-0.5 rounded uppercase tracking-wider">
+            Simulation
+          </span>
+        </div>
+        
+        {/* Horizontal composition: Hedge Metrics on Left, Simulated Hedge Effect on Right */}
+        <div className="grid grid-cols-2 gap-2.5 items-center my-auto">
+          {/* Left Column: Metric */}
+          <div className="min-w-0">
+            <div className="text-[12px] text-[#64748B] font-medium leading-none mb-1">
+              Simulated Hedge
+            </div>
+            <div className="tabular-nums font-bold text-[20px] text-[#16A34A] leading-tight mb-0.5">
+              -7.4%
+            </div>
+            <div className="text-[11px] text-[#64748B] leading-tight">
+              Risk reduction vs unhedged
+            </div>
+          </div>
+
+          {/* Right Column: Hedge Effect Curve */}
+          <div className="flex flex-col justify-center bg-white border border-[#E2E8F0]/70 rounded p-1.5">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-[#64748B] uppercase tracking-wider mb-0.5">
+              <span>Hedge Effect</span>
+              <span className="text-[10px] text-[#16A34A] font-medium">Simulation</span>
+            </div>
+            <div className="w-full h-[46px]">
+              <svg viewBox="0 0 140 48" className="w-full h-full overflow-visible">
+                {/* Unhedged baseline */}
+                <line x1="8" y1="12" x2="132" y2="12" stroke="#CBD5E1" strokeWidth="1" strokeDasharray="2 2" />
+                <text x="8" y="9" fontSize="8.5" fill="#94A3B8" fontWeight="600">Base Risk</text>
+                
+                {/* Risk reduction trajectory */}
+                <path
+                  d="M 8,12 C 40,12 65,31 132,31"
+                  fill="none"
+                  stroke="#16A34A"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                />
+
+                {/* Target point indicator */}
+                <circle cx="132" cy="31" r="2.5" fill="#16A34A" />
+                <text
+                  x="132"
+                  y="26"
+                  fontSize="9.5"
+                  fontWeight="700"
+                  fill="#16A34A"
+                  textAnchor="end"
+                >
+                  -7.4%
+                </text>
+
+                {/* X-axis labels */}
+                <text x="8" y="44" fontSize="9" fill="#94A3B8" textAnchor="start">Current</text>
+                <text x="70" y="44" fontSize="9" fill="#94A3B8" textAnchor="middle">Hedge</text>
+                <text x="132" y="44" fontSize="9" fill="#16A34A" fontWeight="600" textAnchor="end">Protected</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 };
+
