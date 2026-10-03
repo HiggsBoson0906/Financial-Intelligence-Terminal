@@ -37,7 +37,7 @@ def node_scenario_agent(state: AnalysisState) -> AnalysisState:
     top_match = matches[0]
     
     # Construct scenario
-    scenario_name = f"{state.user_intent.get('event_type', 'Event').capitalize()} Shock Scenario"
+    scenario_name = f"{(state.user_intent.get('event_type') or 'Event').capitalize()} Shock Scenario"
     
     # Calculate estimated impacts from historical reactions
     estimated_impacts = {}

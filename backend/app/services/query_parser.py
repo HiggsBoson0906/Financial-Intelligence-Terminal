@@ -66,10 +66,15 @@ def parse_query(query: str) -> Dict[str, Any]:
     elif "medium term" in query_lower or "months" in query_lower:
         horizon = "medium-term"
         
+    # Extract Category if present
+    category_match = re.search(r'category\s+(\d)', query_lower)
+    category = int(category_match.group(1)) if category_match else None
+        
     return {
         "symbols": symbols,
         "event_type": event,
         "region": region,
         "task": task,
-        "horizon": horizon
+        "horizon": horizon,
+        "category": category
     }

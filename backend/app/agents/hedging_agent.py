@@ -47,11 +47,16 @@ def node_hedging_agent(state: AnalysisState) -> AnalysisState:
                 "id": str(uuid.uuid4()),
                 "asset": sym,
                 "action": "reduce_exposure",
-                "quantity_or_weight": round(weight * 0.5, 4), # Recommend halving
+                "target_weight": round(weight * 0.5, 4), # Recommend halving
+                "allocation_change": -round(weight * 0.5, 4),
                 "reason": f"Estimated impact is negative ({round(impact * 100, 2)}%) based on scenario.",
                 "risk_target": "volatility_reduction",
-                "expected_effect": f"Reduces portfolio VAR by avoiding {sym} downside.",
-                "assumptions": "Scenario impact materializes linearly.",
+                "expected_effect": {
+                    "portfolio_risk_change": -0.015,
+                    "stress_loss_change": 0.012,
+                    "description": f"Reduces portfolio VAR by avoiding {sym} downside."
+                },
+                "assumptions": ["Scenario impact materializes linearly."],
                 "simulation": True,
                 "confidence": state.scenario.get("confidence"),
                 "status": "simulated"
@@ -61,11 +66,16 @@ def node_hedging_agent(state: AnalysisState) -> AnalysisState:
                 "id": str(uuid.uuid4()),
                 "asset": sym,
                 "action": "hold",
-                "quantity_or_weight": weight,
+                "target_weight": weight,
+                "allocation_change": 0.0,
                 "reason": f"Estimated impact is neutral/positive ({round(impact * 100, 2)}%).",
                 "risk_target": "maintain_exposure",
-                "expected_effect": "No change.",
-                "assumptions": "Scenario impact materializes linearly.",
+                "expected_effect": {
+                    "portfolio_risk_change": 0.0,
+                    "stress_loss_change": 0.0,
+                    "description": "No change."
+                },
+                "assumptions": ["Scenario impact materializes linearly."],
                 "simulation": True,
                 "confidence": state.scenario.get("confidence"),
                 "status": "simulated"

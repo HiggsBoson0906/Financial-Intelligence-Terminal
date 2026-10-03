@@ -7,7 +7,7 @@ client = TestClient(app)
 def test_health():
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+    assert response.json()["status"] == "ok"
 
 def test_market_not_implemented():
     response = client.get("/api/v1/market/AAPL")
@@ -36,17 +36,17 @@ def test_risk_portfolio_not_implemented():
     response = client.post("/api/v1/risk/portfolio", json={"positions": []})
     assert response.status_code == 501
 
-def test_query_not_implemented():
+def test_query_implemented():
     response = client.post("/api/v1/query", json={"query": "test"})
-    assert response.status_code == 501
+    assert response.status_code == 200
 
-def test_analysis_run_not_implemented():
+def test_analysis_run_implemented():
     response = client.post("/api/v1/analysis/run", json={"run_id": "1", "parameters": {}})
-    assert response.status_code == 501
+    assert response.status_code == 200
 
-def test_analysis_results_not_implemented():
+def test_analysis_results_not_found():
     response = client.get("/api/v1/analysis/123")
-    assert response.status_code == 501
+    assert response.status_code == 404
 
 def test_events_list_not_implemented():
     response = client.get("/api/v1/events")

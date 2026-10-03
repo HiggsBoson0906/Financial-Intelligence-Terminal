@@ -287,9 +287,23 @@ builder.add_edge("evidence_finalize", END)
 
 orchestrator_graph = builder.compile()
 
-def run_analysis(query: str) -> dict:
+def run_analysis(query: str, parent_state: dict = None) -> dict:
     """Entry point for the API."""
-    initial_state = AnalysisState(query=query)
+    if parent_state:
+        # Clone parent state but reset for new run
+        initial_state_dict = parent_state.copy()
+        import uuid
+        from datetime import datetime, timezone
+        initial_state_dict["query"] = query
+        initial_state_dict["status"] = "initialized"
+        initial_state_dict["run_id"] = str(uuid.uuid4())
+        initial_state_dict["started_at"] = datetime.now(timezone.utc)
+        initial_state_dict["completed_at"] = None
+        initial_state_dict["agent_trace"] = []
+        initial_state = AnalysisState.model_validate(initial_state_dict)
+    else:
+        initial_state = AnalysisState(query=query)
+        
     final_state = orchestrator_graph.invoke(initial_state)
     # Validate the dictionary returned by LangGraph back into our Pydantic model
     final_state_obj = AnalysisState.model_validate(final_state)

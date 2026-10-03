@@ -31,6 +31,11 @@ class Settings(BaseSettings):
     EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
     EMBEDDING_DIM: int = int(os.getenv("EMBEDDING_DIM", 384))
 
-    model_config = ConfigDict(case_sensitive=True)
+    # Gemini
+    GEMINI_API_KEY: str | None = None
+    GEMINI_MODEL: str = "gemini-3.8-flash"
+    GEMINI_MODELS: str | None = None
+
+    model_config = ConfigDict(case_sensitive=True, env_file=".env", extra="ignore")
 
 settings = Settings()

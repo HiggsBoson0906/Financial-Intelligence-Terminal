@@ -14,15 +14,16 @@ from app.services.fred_service import fred_service
 from app.services.redis_service import redis_client
 
 
-def get_mock_weather(region: str, event_type: str):
+def get_mock_weather(region: str, event_type: str, category: int = None):
     if not region and not event_type:
         return {"status": "missing"}
         
+    cat = category if category else 3
     return {
-        "max_wind_kt": 110.0,
-        "min_pressure_mb": 950.0,
-        "category": 3,
-        "severity": "Category 3",
+        "max_wind_kt": 110.0 if cat == 3 else 130.0,
+        "min_pressure_mb": 950.0 if cat == 3 else 930.0,
+        "category": cat,
+        "severity": f"Category {cat}",
         "region": region or "Unknown",
         "status": "fallback"
     }
@@ -56,7 +57,11 @@ def node_weather_macro_agent(state: AnalysisState) -> AnalysisState:
 
     # 2. Weather
     try:
-        weather_data = get_mock_weather(state.user_intent.get("region"), state.user_intent.get("event_type"))
+        weather_data = get_mock_weather(
+            state.user_intent.get("region"), 
+            state.user_intent.get("event_type"),
+            state.user_intent.get("category")
+        )
     except Exception as e:
         state.warnings.append(f"Weather fetch failed: {e}")
         weather_data = {"status": "unavailable"}
