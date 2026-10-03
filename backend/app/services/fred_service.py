@@ -94,3 +94,27 @@ class FREDService:
         except Exception as e:
             logger.error(f"FRED CSV fallback failed for {series_id}: {e}")
             return None
+
+    def get_series_latest(self, series_id: str) -> dict:
+        """Helper to get latest data point or fallback."""
+        from datetime import datetime, timedelta
+        import time
+        end_date = datetime.now().strftime("%Y-%m-%d")
+        start_date = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+        try:
+            df = self.fetch_series(series_id, start_date, end_date)
+            if not df.empty:
+                val = df.iloc[-1]["value"]
+                return {"value": val, "status": "fresh"}
+        except:
+            pass
+            
+        # Fallbacks if fail
+        fallbacks = {
+            "CPIAUCSL": 312.5,
+            "DFF": 5.33,
+            "DCOILWTICO": 75.40
+        }
+        return {"value": fallbacks.get(series_id, 0.0), "status": "fallback"}
+
+fred_service = FREDService()

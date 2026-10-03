@@ -1,19 +1,34 @@
 import os
 from pydantic_settings import BaseSettings
-from pydantic import ConfigDict
+from pydantic import ConfigDict, field_validator
 
 class Settings(BaseSettings):
     # App Settings
     APP_ENV: str = os.getenv("APP_ENV", "development")
     API_HOST: str = os.getenv("API_HOST", "0.0.0.0")
-    API_PORT: int = int(os.getenv("API_PORT", 8000))
+    API_PORT: int = 8000
+    
+    @field_validator("API_PORT", mode="before")
+    def parse_api_port(cls, v):
+        if not v:
+            return 8000
+        return int(v)
 
     # Database
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql+psycopg2://postgres:password@localhost:5432/fit_db")
-    REDIS_URL: str = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+    DATABASE_URL: str = "postgresql+psycopg2://postgres:password@localhost:5432/fit_db"
+    REDIS_URL: str = "redis://localhost:6379/0"
+    
+    @field_validator("DATABASE_URL", "REDIS_URL", mode="before")
+    def parse_urls(cls, v, info):
+        if not v:
+            if info.field_name == "DATABASE_URL":
+                return "postgresql+psycopg2://postgres:password@localhost:5432/fit_db"
+            if info.field_name == "REDIS_URL":
+                return "redis://localhost:6379/0"
+        return str(v)
 
     # Embeddings
-    EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
+    EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
     EMBEDDING_DIM: int = int(os.getenv("EMBEDDING_DIM", 384))
 
     model_config = ConfigDict(case_sensitive=True)

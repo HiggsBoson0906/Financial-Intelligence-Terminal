@@ -15,13 +15,10 @@ from sqlalchemy import text
 # ─── helpers ─────────────────────────────────────────────────────────────────
 
 def _db_url():
-    return os.getenv(
-        "DATABASE_URL",
-        "postgresql+psycopg2://postgres:password@localhost:5432/fit_db"
-    )
+    return os.getenv("DATABASE_URL") or "postgresql+psycopg2://postgres:password@localhost:5432/fit_db"
 
 def _redis_url():
-    return os.getenv("REDIS_URL", "redis://localhost:6379/0")
+    return os.getenv("REDIS_URL") or "redis://localhost:6379/0"
 
 
 def _engine():

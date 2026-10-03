@@ -17,7 +17,7 @@ from datetime import datetime
 from typing import Any, List, Optional
 
 
-@dataclass
+@dataclass(kw_only=True)
 class NormalizedRecord:
     """Base schema for all normalized data."""
     timestamp: datetime

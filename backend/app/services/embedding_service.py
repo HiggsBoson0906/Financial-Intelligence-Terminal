@@ -34,6 +34,9 @@ def _load_model() -> None:
     global _model, _model_name, _expected_dim, _init_error
 
     try:
+        import os
+        os.environ["TOKENIZERS_PARALLELISM"] = "false"
+        
         from app.core.config import settings
         from sentence_transformers import SentenceTransformer
 
@@ -41,7 +44,11 @@ def _load_model() -> None:
         _expected_dim = settings.EMBEDDING_DIM
 
         logger.info(f"[EmbeddingService] Loading model: {_model_name}  dim={_expected_dim}")
-        _model = SentenceTransformer(_model_name)
+        try:
+            _model = SentenceTransformer(_model_name, local_files_only=True)
+        except Exception as e:
+            logger.warning(f"local_files_only failed, trying normal mode: {e}")
+            _model = SentenceTransformer(_model_name)
 
         # Validate dimension immediately with a probe
         probe = _model.encode("probe", convert_to_numpy=True)
