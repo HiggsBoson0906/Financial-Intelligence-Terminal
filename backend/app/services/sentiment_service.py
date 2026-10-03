@@ -67,22 +67,34 @@ class SentimentService:
             pd.DataFrame: DataFrame with sentiment scores.
         """
         results = []
-        for article in articles:
+        total = len(articles)
+        for i, article in enumerate(articles):
+            if i % 5 == 0 or i == total - 1:
+                logger.info(f"Processing article {i+1}/{total}...")
+                
             text = article.get("text", "")
-            scores = self.analyze_text(text)
+            status = article.get("status")
+            
+            # If explicit status is given and it signifies missing data, don't even run sentiment
+            if status in ["not_collected", "no_match", "unavailable"]:
+                scores = None
+            else:
+                scores = self.analyze_text(text)
             
             # DO NOT fabricate sentiment for missing articles.
+            base_result = {
+                "date": article.get("date"),
+                "status": status,
+            }
             if scores is None:
-                results.append({
-                    "date": article.get("date"),
+                base_result.update({
                     "positive": None,
                     "negative": None,
                     "neutral": None
                 })
             else:
-                results.append({
-                    "date": article.get("date"),
-                    **scores
-                })
+                base_result.update(scores)
+                
+            results.append(base_result)
                 
         return pd.DataFrame(results)
