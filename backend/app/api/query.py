@@ -164,18 +164,6 @@ def submit_query(request: QueryRequest):
             llm_ms=round(llm_ms, 2)
         )
         
-        # Determine actual data quality status (good, degraded, unavailable)
-        dq_status = "good"
-        if state.warnings or any(s.status in ("fallback", "unavailable") for s in data_sources):
-            dq_status = "degraded"
-        if not state.market_context or all(v.get("status") == "unavailable" for v in state.market_context.values()):
-            dq_status = "unavailable"
-
-        data_quality = DataQualityResponse(
-            overall_status=dq_status,
-            warnings=conf_result["warnings"]
-        )
-        
         from app.schemas.query import LLMMetadata, SourceLink
         llm_metadata = LLMMetadata(**llm_meta_dict)
         
@@ -276,6 +264,18 @@ def submit_query(request: QueryRequest):
         
         web_sources_dicts = llm_meta_dict.get("web_sources", [])
         web_sources = [SourceLink(**ws) for ws in web_sources_dicts]
+        
+        # Determine actual data quality status (good, degraded, unavailable)
+        dq_status = "good"
+        if state.warnings or any(s.status in ("fallback", "unavailable") for s in data_sources):
+            dq_status = "degraded"
+        if not state.market_context or all(v.get("status") == "unavailable" for v in state.market_context.values()):
+            dq_status = "unavailable"
+
+        data_quality = DataQualityResponse(
+            overall_status=dq_status,
+            warnings=conf_result["warnings"]
+        )
         
         response = QueryResponse(
             run_id=state.run_id,
