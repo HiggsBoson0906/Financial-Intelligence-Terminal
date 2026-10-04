@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { RefreshCw, CloudLightning, AlertTriangle, Info, Map as MapIcon, ShieldAlert } from 'lucide-react';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import { API_BASE_URL } from '../services/api';
 
 const maptilerKey = import.meta.env.VITE_MAPTILER_API_KEY;
 const MAP_STYLE = maptilerKey 
@@ -20,7 +21,7 @@ export const WeatherPage: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch('http://localhost:8000/api/v1/events/weather');
+      const res = await fetch(`${API_BASE_URL}/api/v1/events/weather`);
       if (!res.ok) throw new Error('Failed to fetch live weather data');
       const json = await res.json();
       setData(json);

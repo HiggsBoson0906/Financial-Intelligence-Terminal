@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Sparkles, Activity, ChevronRight, CornerDownRight } from 'lucide-react';
 import { QueryResponse } from '../../types/api';
+import { API_BASE_URL } from '../../services/api';
 
 interface FollowUpItem {
   id: string;
@@ -83,7 +84,7 @@ export const AiIntelligenceBrief: React.FC<AiIntelligenceBriefProps> = ({ data, 
     setFollowUpError(null);
     
     try {
-      const res = await fetch('http://localhost:8000/api/v1/query/follow-up', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/query/follow-up`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: question, parent_run_id: data.run_id })

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { QueryResponse } from '../../types/api';
+import { API_BASE_URL } from '../../services/api';
 
 interface ScenarioLabSectionProps {
   data?: QueryResponse | null;
@@ -50,7 +51,7 @@ export const ScenarioLabSection: React.FC<ScenarioLabSectionProps> = ({ data }) 
   const runSimulation = async () => {
     setSimState('SIMULATING');
     try {
-      const response = await fetch('http://localhost:8000/api/v1/scenario/simulate', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/scenario/simulate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
