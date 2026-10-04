@@ -3,6 +3,8 @@ import React from 'react';
 // Data models for risk & hedge charts
 // Architected so data can be replaced by:
 // GET /api/v1/risk/{symbol} or GET /api/v1/risk/portfolio
+import { QueryResponse } from '../../types/api';
+
 export interface RiskTrendPoint {
   time: string;
   varValue: number; // in $K
@@ -14,6 +16,7 @@ export interface HedgeEffectPoint {
 }
 
 interface AnalyticalChainProps {
+  data?: QueryResponse | null;
   onSelectNode?: (nodeName: string) => void;
   riskTrendData?: RiskTrendPoint[];
   hedgeEffectData?: HedgeEffectPoint[];
@@ -30,9 +33,24 @@ const DEFAULT_RISK_TREND: RiskTrendPoint[] = [
 ];
 
 export const AnalyticalChain: React.FC<AnalyticalChainProps> = ({
+  data,
   onSelectNode,
   riskTrendData = DEFAULT_RISK_TREND,
 }) => {
+  // Use real data if available
+  const riskVar = data?.risk?.metrics?.var_95 ? data.risk.metrics.var_95 / 1000 : 0; // $K
+  const expectedShortfall = data?.risk?.metrics?.expected_shortfall ? data.risk.metrics.expected_shortfall / 1000 : 0; // $K
+  const energyExposure = React.useMemo(() => {
+    if (!data?.portfolio_context?.weights) return 'N/A';
+    const w = data.portfolio_context.weights;
+    // Sum energy symbols
+    const total = (w['XOM'] || 0) + (w['CVX'] || 0) + (w['COP'] || 0) + (w['OXY'] || 0) + (w['XLE'] || 0);
+    return total > 0 ? (total * 100).toFixed(0) : 'N/A';
+  }, [data]);
+  const simulatedHedge = data?.recommendations?.[0]?.expected_effect?.stress_loss_change
+    ? (data.recommendations[0].expected_effect.stress_loss_change * 100).toFixed(1)
+    : '0.0';
+
   // SVG coordinates calculation for Quant Risk line chart
   const minVal = 155;
   const maxVal = 190;
@@ -127,7 +145,7 @@ export const AnalyticalChain: React.FC<AnalyticalChainProps> = ({
               </svg>
               {/* Center Donut Label */}
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-[12px] font-bold text-[#0F172A] leading-none tabular-nums">43%</span>
+                <span className="text-[12px] font-bold text-[#0F172A] leading-none tabular-nums">{energyExposure}%</span>
               </div>
             </div>
           </div>
@@ -137,9 +155,15 @@ export const AnalyticalChain: React.FC<AnalyticalChainProps> = ({
             <div className="flex items-baseline justify-between mb-1 pb-1 border-b border-[#F1F5F9]">
               <div>
                 <span className="text-[13px] font-semibold text-[#0F172A] leading-tight block">Energy</span>
-                <span className="text-[11px] text-[#64748B] font-medium leading-none block">Your Portfolio</span>
+                <span className="text-[11px] text-[#64748B] font-medium leading-none block">
+                  {data?.portfolio_context?.type === 'synthetic' ? (
+                    <span className="text-[#D97706] font-bold uppercase tracking-wider">Synthetic Demo Portfolio</span>
+                  ) : (
+                    'Your Portfolio'
+                  )}
+                </span>
               </div>
-              <span className="text-[18px] font-bold text-[#F43F5E] tabular-nums leading-tight">43%</span>
+              <span className="text-[18px] font-bold text-[#F43F5E] tabular-nums leading-tight">{energyExposure}%</span>
             </div>
 
             <div className="space-y-0.5 text-[12px] font-medium text-[#475569]">
@@ -148,21 +172,21 @@ export const AnalyticalChain: React.FC<AnalyticalChainProps> = ({
                   <span className="w-1.5 h-1.5 rounded-sm bg-[#F43F5E] mr-1.5 shrink-0" />
                   Energy
                 </span>
-                <span className="font-semibold text-[#0F172A] tabular-nums">43%</span>
+                <span className="font-semibold text-[#0F172A] tabular-nums">{energyExposure !== 'N/A' ? energyExposure : '0'}%</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="flex items-center truncate">
                   <span className="w-1.5 h-1.5 rounded-sm bg-[#3B82F6] mr-1.5 shrink-0" />
                   Tech
                 </span>
-                <span className="font-semibold text-[#0F172A] tabular-nums">28%</span>
+                <span className="font-semibold text-[#0F172A] tabular-nums">0%</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="flex items-center truncate">
                   <span className="w-1.5 h-1.5 rounded-sm bg-[#F59E0B] mr-1.5 shrink-0" />
                   Finance
                 </span>
-                <span className="font-semibold text-[#0F172A] tabular-nums">15%</span>
+                <span className="font-semibold text-[#0F172A] tabular-nums">0%</span>
               </div>
             </div>
           </div>
@@ -177,18 +201,18 @@ export const AnalyticalChain: React.FC<AnalyticalChainProps> = ({
         <div className="flex items-center justify-between mb-1.5">
           <div className="text-[16px] font-semibold text-[#0F172A]">Quant Risk</div>
           <span className="text-[10px] font-semibold text-[#D97706] bg-[#FEF3C7] px-2 py-0.5 rounded uppercase tracking-wider">
-            Model
+            {data?.data_quality?.overall_status === 'good' ? 'LIVE' : (data?.data_quality?.overall_status || 'MODEL').toUpperCase()}
           </span>
         </div>
         
         {/* Horizontal composition: Metrics on Left, Risk Trend Line Chart on Right */}
         <div className="grid grid-cols-2 gap-2.5 items-center my-auto">
           {/* Left Column: Metrics */}
-          <div className="space-y-1.5 min-w-0">
+          <div className="space-y-1.5 min-w-0 col-span-2">
             <div>
               <span className="text-[12px] text-[#64748B] font-medium block leading-none mb-0.5">VaR (95%)</span>
               <div className="flex items-baseline gap-1.5">
-                <span className="tabular-nums font-bold text-[18px] text-[#0F172A] leading-tight">$184K</span>
+                <span className="tabular-nums font-bold text-[18px] text-[#0F172A] leading-tight">${riskVar.toFixed(0)}K</span>
                 <span className="text-[12px] font-semibold text-[#DC2626] tabular-nums">+11.4%</span>
               </div>
             </div>
@@ -196,52 +220,9 @@ export const AnalyticalChain: React.FC<AnalyticalChainProps> = ({
             <div>
               <span className="text-[12px] text-[#64748B] font-medium block leading-none mb-0.5">Expected Shortfall</span>
               <div className="flex items-baseline gap-1.5">
-                <span className="tabular-nums font-bold text-[18px] text-[#0F172A] leading-tight">$241K</span>
+                <span className="tabular-nums font-bold text-[18px] text-[#0F172A] leading-tight">${expectedShortfall.toFixed(0)}K</span>
                 <span className="text-[12px] font-semibold text-[#DC2626] tabular-nums">+18.7%</span>
               </div>
-            </div>
-          </div>
-
-          {/* Right Column: Risk Trend Chart */}
-          <div className="flex flex-col justify-center bg-white border border-[#E2E8F0]/70 rounded p-1.5">
-            <div className="flex items-center justify-between text-[11px] font-semibold text-[#64748B] uppercase tracking-wider mb-0.5">
-              <span>Risk Trend</span>
-              <span className="text-[10px] text-[#94A3B8] font-medium">Demo Data</span>
-            </div>
-            <div className="w-full h-[46px]">
-              <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-visible">
-                {/* Subtle grid lines */}
-                <line x1={xStart} y1="18" x2={xEnd} y2="18" stroke="#F1F5F9" strokeWidth="1" strokeDasharray="2 2" />
-                <line x1={xStart} y1="28" x2={xEnd} y2="28" stroke="#F1F5F9" strokeWidth="1" strokeDasharray="2 2" />
-                
-                {/* Risk trend polyline */}
-                <polyline
-                  fill="none"
-                  stroke="#DC2626"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  points={polylinePoints}
-                />
-                
-                {/* Peak point indicator */}
-                <circle cx={peakPoint.x} cy={peakPoint.y} r="2.5" fill="#DC2626" />
-                <text
-                  x={peakPoint.x}
-                  y={peakPoint.y - 4}
-                  fontSize="9.5"
-                  fontWeight="700"
-                  fill="#DC2626"
-                  textAnchor="middle"
-                >
-                  $184K
-                </text>
-
-                {/* X-axis labels */}
-                <text x={xStart} y="44" fontSize="9" fill="#94A3B8" textAnchor="start">9A</text>
-                <text x={peakPoint.x} y="44" fontSize="9" fill="#94A3B8" textAnchor="middle">12P</text>
-                <text x={xEnd} y="44" fontSize="9" fill="#94A3B8" textAnchor="end">3P</text>
-              </svg>
             </div>
           </div>
         </div>
@@ -268,7 +249,7 @@ export const AnalyticalChain: React.FC<AnalyticalChainProps> = ({
               Simulated Hedge
             </div>
             <div className="tabular-nums font-bold text-[20px] text-[#16A34A] leading-tight mb-0.5">
-              -7.4%
+              {simulatedHedge}%
             </div>
             <div className="text-[11px] text-[#64748B] leading-tight">
               Risk reduction vs unhedged
@@ -306,7 +287,7 @@ export const AnalyticalChain: React.FC<AnalyticalChainProps> = ({
                   fill="#16A34A"
                   textAnchor="end"
                 >
-                  -7.4%
+                  {simulatedHedge}%
                 </text>
 
                 {/* X-axis labels */}

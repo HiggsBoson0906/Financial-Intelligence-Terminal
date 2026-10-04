@@ -1,16 +1,23 @@
 import React, { useState } from 'react';
 import { ArrowUp, ArrowDown, ExternalLink } from 'lucide-react';
 
+import { QueryResponse } from '../../types/api';
+
 interface DecisionIntelligenceProps {
+  data?: QueryResponse | null;
   onExploreScenario: () => void;
   onViewEvidence: () => void;
 }
 
 export const DecisionIntelligence: React.FC<DecisionIntelligenceProps> = ({
+  data,
   onExploreScenario,
   onViewEvidence,
 }) => {
   const [activeTab, setActiveTab] = useState<'Overview' | 'WhyItMatters' | 'AgentViews' | 'Evidence'>('Overview');
+  
+  const eventName = data?.event?.event_name || 'Event Analysis';
+  const dataStatus = data?.data_quality?.overall_status === 'good' ? 'LIVE' : (data?.data_quality?.overall_status || 'SIMULATION').toUpperCase();
 
   return (
     <div className="flex flex-col justify-between h-full flex-1 select-none">
@@ -65,10 +72,10 @@ export const DecisionIntelligence: React.FC<DecisionIntelligenceProps> = ({
         {/* Active Event Hero Card */}
         <div className="flex items-center justify-between py-4 border-b border-[#F1F5F9] mb-4">
           <div>
-            <div className="text-[20px] font-semibold text-[#0F172A]">Bay of Bengal Flood</div>
-            <div className="text-[13px] font-medium text-[#475569] mt-0.5">SIMULATION</div>
+            <div className="text-[20px] font-semibold text-[#0F172A]">{eventName}</div>
+            <div className="text-[13px] font-medium text-[#475569] mt-0.5">{dataStatus}</div>
             <div className="text-[12px] text-[#94A3B8] font-mono-tech mt-1">
-              SIMULATION • 12:41 UTC
+              {dataStatus} • {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })} UTC
             </div>
           </div>
 
@@ -91,109 +98,84 @@ export const DecisionIntelligence: React.FC<DecisionIntelligenceProps> = ({
           </div>
 
           <div className="grid grid-cols-2 gap-3 items-center">
-            {/* Impact Metrics */}
             <div className="space-y-2.5 tabular-data text-[13px]">
               <div className="flex justify-between items-center">
                 <span className="text-[#64748B]">Energy Exposure</span>
-                <span className="font-semibold text-[#0F172A] text-[18px]">43%</span>
+                <span className="font-semibold text-[#0F172A] text-[18px]">
+                  {data?.recommendations?.[0]?.expected_effect?.portfolio_risk_change !== undefined ? `${Math.abs(data.recommendations[0].expected_effect.portfolio_risk_change * 100).toFixed(1)}%` : 'N/A'}
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-[#64748B]">Risk Change</span>
-                <span className="font-semibold text-[#DC2626] text-[22px]">+11.4%</span>
+                <span className="font-semibold text-[#DC2626] text-[22px]">
+                  {data?.risk?.metrics?.var_95 !== undefined ? `+$${(data.risk.metrics.var_95 / 1000).toFixed(1)}K` : 'N/A'}
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-[#64748B]">Portfolio Impact</span>
-                <span className="font-semibold text-[#DC2626] text-[14px]">+8.7%</span>
+                <span className="font-semibold text-[#DC2626] text-[14px]">
+                  {data?.scenario?.portfolio_impact?.total_impact_percent !== undefined ? `${data.scenario.portfolio_impact.total_impact_percent}%` : 'N/A'}
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-[#64748B]">Confidence</span>
-                <span className="font-semibold text-[#16A34A] text-[14px]">78%</span>
+                <span className="font-semibold text-[#16A34A] text-[14px]">
+                  {data?.answer?.confidence !== undefined ? `${Math.round(data.answer.confidence * 100)}%` : 'N/A'}
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-[#64748B]">Data State</span>
-                <span className="font-bold text-[#D97706] bg-[#FEF3C7] px-1.5 py-0.5 rounded text-[10px]">MODEL</span>
+                <span className="font-bold text-[#D97706] bg-[#FEF3C7] px-1.5 py-0.5 rounded text-[10px] uppercase">
+                  {dataStatus}
+                </span>
               </div>
             </div>
 
-            {/* Mini Area Chart: Portfolio Risk (VaR) */}
-            <div className="py-2">
-              <div className="text-[11px] font-semibold text-[#64748B] mb-1">
-                Portfolio Risk (VaR)
-              </div>
-              <div className="h-16 relative">
-                <svg width="100%" height="100%" viewBox="0 0 100 50" preserveAspectRatio="none">
-                  <defs>
-                    <linearGradient id="varGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#2563EB" stopOpacity="0.3" />
-                      <stop offset="100%" stopColor="#2563EB" stopOpacity="0.0" />
-                    </linearGradient>
-                  </defs>
-                  {/* Fill area */}
-                  <polygon
-                    points="0,40 15,35 35,45 50,30 65,32 85,15 100,8 100,50 0,50"
-                    fill="url(#varGrad)"
-                  />
-                  {/* Line */}
-                  <polyline
-                    points="0,40 15,35 35,45 50,30 65,32 85,15 100,8"
-                    fill="none"
-                    stroke="#2563EB"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  {/* Peak alert dot */}
-                  <circle cx="100" cy="8" r="3" fill="#DC2626" stroke="#FFFFFF" strokeWidth="1.5" />
-                </svg>
-              </div>
-              <div className="flex justify-between text-[10px] text-[#94A3B8] font-plex-mono mt-0.5">
-                <span>Jun 1</span>
-                <span>Jun 15</span>
-                <span>Jun 30</span>
-              </div>
-            </div>
+
           </div>
         </div>
 
-        {/* WHAT CHANGED? (Last 15 min) */}
+        {/* RECOMMENDATION DETAILS */}
         <div className="mt-5 pt-3 border-t border-[#F1F5F9]">
           <div className="text-[14px] font-semibold text-[#0F172A] mb-3">
-            What Changed? <span className="font-normal text-[#94A3B8]">(Last 15 min)</span>
+            Recommended Action
           </div>
 
-          <div className="space-y-2 tabular-data text-[13px]">
-            <div className="flex items-center justify-between text-[12px] py-0.5">
-              <span className="text-[#94A3B8]">12:31</span>
-              <span className="text-[#334155] font-medium">Flood Severity Upgrade</span>
-              <ArrowUp className="w-3.5 h-3.5 text-[#DC2626]" />
-            </div>
-
-            <div className="flex items-center justify-between text-[12px] py-0.5">
-              <span className="text-[#94A3B8]">12:34</span>
-              <span className="text-[#334155] font-medium">Infrastructure Risk ↑</span>
-              <div className="flex items-center gap-1 text-[#DC2626] font-bold">
-                <span>High</span>
-                <ArrowUp className="w-3.5 h-3.5" />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between text-[12px] py-0.5">
-              <span className="text-[#94A3B8]">12:37</span>
-              <span className="text-[#334155] font-medium">Sentiment -0.51 → -0.72</span>
-              <ArrowDown className="w-3.5 h-3.5 text-[#DC2626]" />
-            </div>
-
-            <div className="flex items-center justify-between text-[12px] py-0.5">
-              <span className="text-[#94A3B8]">12:40</span>
-              <span className="text-[#334155] font-medium">Energy exposure 38% → 43%</span>
-              <ArrowUp className="w-3.5 h-3.5 text-[#DC2626]" />
-            </div>
-
-            <div className="flex items-center justify-between text-[11px] py-0.5">
-              <span className="text-[#94A3B8]">12:42</span>
-              <span className="text-[#334155] font-medium">Risk Change +8.7% → +11.4%</span>
-              <ArrowUp className="w-3.5 h-3.5 text-[#DC2626]" />
-            </div>
+          <div className="space-y-2 tabular-data text-[13px] max-h-48 overflow-y-auto pr-2">
+            {data?.recommendations && data.recommendations.length > 0 ? (
+              Object.entries(
+                data.recommendations.reduce((acc: any, rec: any) => {
+                  if (!acc[rec.action]) {
+                    acc[rec.action] = { ...rec, assets: [] };
+                  }
+                  if (rec.asset && !acc[rec.action].assets.includes(rec.asset)) {
+                    acc[rec.action].assets.push(rec.asset);
+                  }
+                  return acc;
+                }, {})
+              ).map(([action, rec]: [string, any], idx: number) => (
+                <div key={idx} className="bg-[#F8FAFC] border border-[#F1F5F9] rounded-lg p-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="font-semibold text-[#0F172A]">{action}</div>
+                    {rec.confidence && (
+                       <div className="text-[10px] font-bold text-[#16A34A] bg-[#DCFCE7] px-1.5 py-0.5 rounded">
+                         {(rec.confidence * 100).toFixed(0)}% CONFIDENCE
+                       </div>
+                    )}
+                  </div>
+                  <div className="text-[12px] text-[#475569] leading-snug mb-2">{rec.reason || rec.rationale}</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {rec.assets.map((asset: string, aIdx: number) => (
+                      <span key={aIdx} className="bg-white border border-[#E2E8F0] px-1.5 py-0.5 rounded text-[11px] font-medium text-[#334155]">
+                        {asset}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-[#94A3B8] italic text-[12px]">No hedging recommendations provided.</div>
+            )}
           </div>
         </div>
       </div>

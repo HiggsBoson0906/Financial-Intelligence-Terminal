@@ -1,5 +1,5 @@
-import React from 'react';
-import { Bell } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Menu, X } from 'lucide-react';
 import { ActivePage } from '../../types';
 
 interface TopNavProps {
@@ -13,75 +13,105 @@ export const TopNav: React.FC<TopNavProps> = ({
   setActivePage,
   currentTime,
 }) => {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   const navTabs: Array<{ id: ActivePage; label: string }> = [
-    { id: 'overview', label: 'Overview' },
-    { id: 'markets', label: 'Markets' },
-    { id: 'portfolio', label: 'Portfolio' },
-    { id: 'intelligence', label: 'Intelligence' },
-    { id: 'risk', label: 'Risk' },
-    { id: 'events', label: 'Events' },
-    { id: 'weather', label: 'Weather' },
-    { id: 'agents', label: 'Agents' },
-    { id: 'reports', label: 'Reports' },
+    { id: 'home', label: 'HOME' },
+    { id: 'news', label: 'NEWS' },
+    { id: 'weather', label: 'WEATHER' },
+    { id: 'portfolio', label: 'PORTFOLIO' },
   ];
 
+  // Handle scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <header className="bg-white border-b border-[#F1F5F9] px-6 h-16 flex items-center justify-between select-none">
-      {/* Left: Logo & Navigation Links */}
-      <div className="flex items-center gap-8">
-        <div className="flex items-center gap-3">
-          <span className="text-xl font-bold tracking-tight text-[#0F172A]">
-            FIT
-          </span>
-          <div className="text-[11px] leading-tight text-[#64748B] font-medium border-l border-[#F1F5F9] pl-3">
-            <div>Financial</div>
-            <div>Intelligence Terminal</div>
+    <div className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'pt-2 pb-2 backdrop-blur-md bg-white/70 shadow-sm' : 'pt-4 pb-4 bg-transparent'}`}>
+      <div className={`max-w-[1200px] mx-auto bg-white border border-[#E2E8F0] rounded-xl flex items-center justify-between px-6 transition-all duration-300 ${isScrolled ? 'h-14 shadow-md' : 'h-16 shadow-sm'}`}>
+        
+        {/* Left: Brand */}
+        <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setActivePage('home')}>
+          {/* Subtle pillar motif */}
+          <div className="flex items-end gap-[3px] transition-transform duration-300 group-hover:-translate-y-0.5">
+            <div className="w-1.5 h-3.5 bg-blue-300 rounded-sm"></div>
+            <div className="w-1.5 h-6 bg-blue-900 rounded-sm"></div>
+            <div className="w-1.5 h-4.5 bg-cyan-500 rounded-sm"></div>
           </div>
+          <span className="text-[22px] font-extrabold tracking-tight text-[#0F172A] font-sans">
+            PillerStreet
+          </span>
         </div>
 
-        {/* Horizontal Navigation Links */}
-        <nav className="flex items-center gap-7 text-[13px] font-medium">
+        {/* Center: Desktop Navigation */}
+        <nav className="hidden md:flex items-center gap-2">
           {navTabs.map((tab) => {
             const isActive = activePage === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActivePage(tab.id)}
-                className={`py-4 transition-colors relative ${
+                className={`relative px-4 py-2 text-[12px] font-bold tracking-widest transition-all duration-200 rounded-lg overflow-hidden ${
                   isActive
-                    ? 'text-[#2563EB]'
-                    : 'text-[#64748B] hover:text-[#0F172A]'
+                    ? 'text-blue-900 bg-blue-50'
+                    : 'text-[#64748B] hover:text-[#0F172A] hover:bg-slate-50'
                 }`}
               >
                 {tab.label}
                 {isActive && (
-                  <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#2563EB]" />
+                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-[3px] bg-blue-600 rounded-t-full" />
                 )}
               </button>
             );
           })}
         </nav>
-      </div>
 
-      {/* Right: Notification, User, Market Status, Clock */}
-      <div className="flex items-center gap-4 text-xs text-[#0F172A]">
-        <button className="p-1.5 text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-full transition-colors relative">
-          <Bell className="w-4 h-4" />
-        </button>
-
-        <div className="w-7 h-7 rounded-full bg-[#E2E8F0] text-[#475569] font-semibold flex items-center justify-center text-xs">
-          A
-        </div>
-
-        <div className="flex items-center gap-1.5 text-[13px] font-medium text-[#475569] pl-3 border-l border-[#F1F5F9]">
-          <span className="w-2 h-2 rounded-full bg-[#16A34A] inline-block" />
-          <span>Market Open</span>
-        </div>
-
-        <div className="font-mono-tech text-[12px] text-[#64748B]">
-          {currentTime || '12:43:08 EST'}
+        {/* Right: Clock & Mobile Menu Toggle */}
+        <div className="flex items-center gap-4">
+          <div className="hidden sm:flex items-center gap-2 font-mono-tech text-[11px] font-bold text-[#475569] bg-[#F8FAFC] px-3 py-1.5 rounded-md border border-[#F1F5F9] shadow-sm">
+            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+            {currentTime || '04 OCT 2026 | 05:34 IST'}
+          </div>
+          
+          <button 
+            className="md:hidden p-2 text-[#0F172A]"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
       </div>
-    </header>
+
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden absolute top-full left-4 right-4 mt-2 bg-white border border-[#E2E8F0] rounded-xl shadow-lg p-4 flex flex-col gap-2 animate-in fade-in slide-in-from-top-2">
+          {navTabs.map((tab) => {
+            const isActive = activePage === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  setActivePage(tab.id);
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`px-4 py-3 text-[13px] font-bold tracking-widest text-left rounded-lg transition-colors ${
+                  isActive
+                    ? 'text-blue-900 bg-blue-50 border-l-4 border-blue-600'
+                    : 'text-[#64748B] hover:bg-slate-50 border-l-4 border-transparent'
+                }`}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 };

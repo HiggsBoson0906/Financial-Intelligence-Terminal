@@ -72,7 +72,7 @@ export const CommandTerminal: React.FC<CommandTerminalProps> = ({
       <form onSubmit={handleSubmit} className="flex items-center gap-2">
         <div className="flex items-center gap-1.5 text-cyan-400 font-mono-data text-xs font-bold shrink-0">
           <Terminal className="w-4 h-4 text-[#00f0ff]" />
-          <span>ASK FIT &gt;</span>
+          <span>ASK PILLERSTREET &gt;</span>
         </div>
 
         <input

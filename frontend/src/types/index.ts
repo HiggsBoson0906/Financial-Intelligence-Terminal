@@ -1,14 +1,10 @@
+export * from './api';
+
 export type ActivePage = 
-  | 'overview' 
-  | 'markets' 
-  | 'portfolio' 
-  | 'intelligence' 
-  | 'risk' 
+  | 'home' 
+  | 'news' 
   | 'weather' 
-  | 'agents' 
-  | 'events' 
-  | 'watchlist' 
-  | 'reports';
+  | 'portfolio';
 
 export interface MarketTicker {
   symbol: string;

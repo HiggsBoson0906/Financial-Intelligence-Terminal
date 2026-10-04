@@ -1,3 +1,5 @@
+import type { QueryResponse } from '../types/api';
+
 export type Severity = 'CRITICAL' | 'WARNING' | 'INFO' | 'POSITIVE';
 export type DataStatus = 'LIVE' | 'HISTORICAL' | 'SIMULATION' | 'MODEL' | 'FALLBACK' | 'STALE' | 'SIMULATION ONLY';
 
@@ -24,6 +26,20 @@ export interface AnalysisSnapshot {
   hedgeRecommendation: string | null;
   riskVaR: number;
 }
+
+export const createSnapshotFromResponse = (response: QueryResponse): AnalysisSnapshot => {
+  return {
+    queryId: response.run_id,
+    wtiPrice: response.market_context?.prices?.WTI || 0,
+    vix: response.market_context?.prices?.VIX || 0,
+    energyExposure: response.recommendations?.[0]?.expected_effect?.portfolio_risk_change || 0,
+    historicalMatch: response.historical_matches?.[0]?.event_name || null,
+    historicalSimilarity: response.historical_matches?.[0]?.similarity_score ? Math.round(response.historical_matches[0].similarity_score * 100) : null,
+    scenarioImpact: response.scenario?.portfolio_impact?.total_impact_percent || null,
+    hedgeRecommendation: response.recommendations?.[0]?.action || null,
+    riskVaR: response.risk?.metrics?.var_95 || 0,
+  };
+};
 
 export const detectNewIntelligence = (
   prev: AnalysisSnapshot | null,

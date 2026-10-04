@@ -1,22 +1,62 @@
 import React, { useState } from 'react';
+import { QueryResponse } from '../../types/api';
 
-export const ScenarioLabSection: React.FC = () => {
+interface ScenarioLabSectionProps {
+  data?: QueryResponse | null;
+}
+
+export const ScenarioLabSection: React.FC<ScenarioLabSectionProps> = ({ data }) => {
+  // Calculate initial energy exposure dynamically
+  const initialEnergy = React.useMemo(() => {
+    const weights = data?.portfolio_context?.weights;
+    if (!weights) return 0;
+    // Simple mock: if Energy factor exists, use it, else sum energy-related symbols.
+    return 0; // Default if we don't have enough logic.
+  }, [data]);
+
   const [intensity, setIntensity] = useState<number>(4);
-  const [energyExposure, setEnergyExposure] = useState<number>(43);
-  const [hedgeSize, setHedgeSize] = useState<number>(20);
+  const [energyExposure, setEnergyExposure] = useState<number>(0);
+  const [hedgeSize, setHedgeSize] = useState<number>(0);
+  
+  React.useEffect(() => {
+    setEnergyExposure(initialEnergy);
+  }, [initialEnergy]);
 
-  // Dynamic simulation calculations
-  const simVaR = Math.round(184 - (hedgeSize / 20) * 43);
-  const simES = Math.round(241 - (hedgeSize / 20) * 48);
-  const simRisk = (14.2 - (hedgeSize / 20) * 7.4).toFixed(1);
-  const riskReduction = (-(hedgeSize / 20) * 7.4).toFixed(1);
-  const lossReduction = Math.round((hedgeSize / 20) * 41);
-  const hedgeCost = Math.round((hedgeSize / 20) * 12);
+  if (!data?.scenario) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-[#E2E8F0] p-6 select-none h-full flex flex-col items-center justify-center text-center">
+        <h2 className="text-[18px] font-bold text-[#0F172A] mb-2">Scenario Lab</h2>
+        <div className="text-[14px] text-[#64748B]">No scenario data available.</div>
+      </div>
+    );
+  }
+
+  const baseVar = data?.risk?.metrics?.var_95 ? data.risk.metrics.var_95 / 1000 : 0;
+  const baseEs = data?.risk?.metrics?.expected_shortfall ? data.risk.metrics.expected_shortfall / 1000 : 0;
+  const baseRiskChange = data?.scenario?.portfolio_impact?.total_impact_percent || 0;
+
+  // Use scenario values from backend as the true baseline for the simulation
+  const stressedVar = data?.scenario?.portfolio_impact?.stressed_var_95 
+    ? data.scenario.portfolio_impact.stressed_var_95 / 1000 
+    : baseVar * (1 + (baseRiskChange / 100));
+
+  const stressedEs = data?.scenario?.portfolio_impact?.stressed_expected_shortfall 
+    ? data.scenario.portfolio_impact.stressed_expected_shortfall / 1000 
+    : baseEs * (1 + (baseRiskChange / 100));
+
+  // Dynamic simulation calculations (Further Hedge Simulation)
+  const simVaR = Math.round(stressedVar - (hedgeSize / 20) * (stressedVar * 0.2));
+  const simES = Math.round(stressedEs - (hedgeSize / 20) * (stressedEs * 0.2));
+  const riskReductionFactor = 0.5; // Dynamic factor based on hedge
+  const simRisk = (baseRiskChange - (hedgeSize / 20) * riskReductionFactor).toFixed(1);
+  const riskReduction = (-(hedgeSize / 20) * riskReductionFactor).toFixed(1);
+  const lossReduction = Math.round((stressedVar - simVaR));
+  const hedgeCost = Math.round((hedgeSize / 20) * (baseVar * 0.05));
 
   const resetSimulation = () => {
     setIntensity(4);
-    setEnergyExposure(43);
-    setHedgeSize(20);
+    setEnergyExposure(initialEnergy);
+    setHedgeSize(0);
   };
 
   return (
@@ -49,8 +89,8 @@ export const ScenarioLabSection: React.FC = () => {
             {/* Slider 1: Hurricane Intensity */}
             <div>
               <div className="flex items-center justify-between text-[12px] mb-2 font-sans">
-                <span className="text-[#0F172A] font-semibold">Hurricane Intensity</span>
-                <span className="font-bold text-[#2563EB]">Cat {intensity}</span>
+                <span className="text-[#0F172A] font-semibold">Event Intensity</span>
+                <span className="font-bold text-[#2563EB]">Level {intensity}</span>
               </div>
               <input
                 type="range"
@@ -62,8 +102,8 @@ export const ScenarioLabSection: React.FC = () => {
                 className="w-full accent-[#2563EB] cursor-pointer h-1.5 bg-[#E2E8F0] rounded-lg mb-1"
               />
               <div className="flex justify-between text-[10px] text-[#94A3B8] font-sans">
-                <span>Cat 1</span>
-                <span>Cat 5</span>
+                <span>Level 1</span>
+                <span>Level 5</span>
               </div>
             </div>
 
@@ -114,10 +154,10 @@ export const ScenarioLabSection: React.FC = () => {
           <div>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-[12px] font-bold text-[#64748B] uppercase tracking-wider">
-                Simulation Result
+                Backend Scenario &rarr; Simulation Result
               </h3>
               <span className="text-[11px] font-semibold text-[#94A3B8]">
-                CURRENT &rarr; SIMULATED
+                SCENARIO &rarr; HEDGED
               </span>
             </div>
             
@@ -125,18 +165,18 @@ export const ScenarioLabSection: React.FC = () => {
               {/* Comparison Rows */}
               <div className="space-y-1 mb-5">
                 <div className="flex justify-between items-center py-1.5 border-b border-[#F8FAFC]">
-                  <span className="text-[#475569] font-medium font-sans">VaR (95%)</span>
+                  <span className="text-[#475569] font-medium font-sans">Stressed VaR (95%)</span>
                   <div className="flex items-center gap-3">
-                    <span className="text-[#94A3B8]">$184K</span>
+                    <span className="text-[#DC2626]">${Math.round(stressedVar)}K</span>
                     <span className="text-[#CBD5E1]">&rarr;</span>
                     <span className="text-[#16A34A] font-bold">${simVaR}K</span>
                   </div>
                 </div>
 
                 <div className="flex justify-between items-center py-1.5 border-b border-[#F8FAFC]">
-                  <span className="text-[#475569] font-medium font-sans">Expected Shortfall</span>
+                  <span className="text-[#475569] font-medium font-sans">Stressed Shortfall</span>
                   <div className="flex items-center gap-3">
-                    <span className="text-[#94A3B8]">$241K</span>
+                    <span className="text-[#DC2626]">${Math.round(stressedEs)}K</span>
                     <span className="text-[#CBD5E1]">&rarr;</span>
                     <span className="text-[#16A34A] font-bold">${simES}K</span>
                   </div>
@@ -145,7 +185,7 @@ export const ScenarioLabSection: React.FC = () => {
                 <div className="flex justify-between items-center py-1.5">
                   <span className="text-[#475569] font-medium font-sans">Risk Change</span>
                   <div className="flex items-center gap-3">
-                    <span className="text-[#DC2626] font-semibold">+14.2%</span>
+                    <span className="text-[#DC2626] font-semibold">+{baseRiskChange.toFixed(1)}%</span>
                     <span className="text-[#CBD5E1]">&rarr;</span>
                     <span className="text-[#16A34A] font-bold">+{simRisk}%</span>
                   </div>

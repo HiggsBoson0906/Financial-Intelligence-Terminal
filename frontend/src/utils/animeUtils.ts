@@ -1,4 +1,4 @@
-import { animate, stagger } from 'animejs';
+import anime from 'animejs';
 
 /**
  * Animate a numerical counter cleanly with JetBrains Mono tabular digits
@@ -15,7 +15,8 @@ export const animateCounter = (
   if (!element) return;
 
   const obj = { val: startValue };
-  animate(obj, {
+  anime({
+    targets: obj,
     val: endValue,
     duration: duration,
     ease: 'outExpo',
@@ -33,7 +34,8 @@ export const animateCounter = (
  * Pulse effect for active AI agent nodes
  */
 export const pulseElement = (target: string | HTMLElement) => {
-  return animate(target, {
+  return anime({
+    targets: target,
     scale: [1, 1.05, 1],
     opacity: [0.8, 1, 0.8],
     borderColor: ['rgba(0, 240, 255, 0.4)', 'rgba(0, 240, 255, 0.9)', 'rgba(0, 240, 255, 0.4)'],
@@ -53,11 +55,12 @@ export const animateSvgFlow = (pathElement: SVGPathElement | null) => {
   pathElement.style.strokeDasharray = `${totalLength}`;
   pathElement.style.strokeDashoffset = `${totalLength}`;
 
-  return animate(pathElement, {
+  return anime({
+    targets: pathElement,
     strokeDashoffset: [totalLength, 0],
     ease: 'inOutSine',
     duration: 2000,
-    delay: stagger(250),
+    delay: anime.stagger(250),
     direction: 'alternate',
     loop: true,
   });
@@ -67,10 +70,11 @@ export const animateSvgFlow = (pathElement: SVGPathElement | null) => {
  * Terminal command stream reveal
  */
 export const animateTerminalReveal = (targets: string | HTMLElement[]) => {
-  return animate(targets, {
+  return anime({
+    targets,
     translateY: [12, 0],
     opacity: [0, 1],
-    delay: stagger(120),
+    delay: anime.stagger(120),
     ease: 'outQuart',
     duration: 600,
   });

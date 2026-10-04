@@ -11,53 +11,7 @@ export interface StreamEvent {
   iconType: 'storm' | 'chart' | 'news' | 'macro' | 'energy';
 }
 
-export const mockStreamEvents: StreamEvent[] = [
-  {
-    id: 'stream-1',
-    time: '12:42',
-    category: 'WEATHER',
-    severity: 'HIGH',
-    title: 'Bay of Bengal flood scenario detected',
-    description: 'MODEL: Eastern coastal infrastructure shows elevated simulated exposure.',
-    iconType: 'storm',
-  },
-  {
-    id: 'stream-2',
-    time: '12:39',
-    category: 'MARKET',
-    severity: 'MEDIUM',
-    title: 'Energy-sensitive assets exposed to disruption',
-    description: 'MODEL: Energy-sensitive assets exposed to simulated regional disruption.',
-    iconType: 'chart',
-  },
-  {
-    id: 'stream-3',
-    time: '12:37',
-    category: 'NEWS',
-    severity: 'MEDIUM',
-    title: 'Portfolio risk increases under flood scenario',
-    description: 'SIMULATION: Portfolio risk metrics show elevated exposure.',
-    iconType: 'news',
-  },
-  {
-    id: 'stream-4',
-    time: '12:31',
-    category: 'MACRO',
-    severity: 'LOW',
-    title: 'Regional trade routes impacted',
-    description: 'SIMULATION: Simulated supply chain delays detected.',
-    iconType: 'macro',
-  },
-  {
-    id: 'stream-5',
-    time: '12:28',
-    category: 'ENERGY',
-    severity: 'MEDIUM',
-    title: 'Refinery utilization at risk',
-    description: 'MODEL: Several eastern refineries in potential flood path.',
-    iconType: 'energy',
-  },
-];
+export const mockStreamEvents: StreamEvent[] = [];
 
 interface IntelligenceStreamProps {
   onSelectEvent?: (event: StreamEvent) => void;
@@ -192,34 +146,37 @@ export const IntelligenceStream: React.FC<IntelligenceStreamProps> = ({ onSelect
 
         {/* Feed List */}
         <div className="mt-3">
-          {filteredEvents.map((evt) => (
-            <div
-              key={evt.id}
-              onClick={() => onSelectEvent?.(evt)}
-              className="py-4 border-b border-[#F1F5F9] last:border-0 hover:bg-[#F8FAFC] transition-colors cursor-pointer flex gap-4 items-start group -mx-2 px-2 rounded-lg relative"
-            >
-              {/* Subtle active indicator on hover */}
-              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-0 bg-[#2563EB] transition-all duration-200 group-hover:h-8 rounded-r-full opacity-0 group-hover:opacity-100" />
-              {renderIcon(evt.iconType)}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between text-[11px] mb-1.5">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[#94A3B8] font-mono-tech">{evt.time}</span>
-                    <span className="text-[#2563EB] font-medium uppercase">{evt.category}</span>
+          {filteredEvents.length > 0 ? (
+            filteredEvents.map((evt) => (
+              <div
+                key={evt.id}
+                onClick={() => onSelectEvent?.(evt)}
+                className="py-4 border-b border-[#F1F5F9] last:border-0 hover:bg-[#F8FAFC] transition-colors cursor-pointer flex gap-4 items-start group -mx-2 px-2 rounded-lg relative"
+              >
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-0 bg-[#2563EB] transition-all duration-200 group-hover:h-8 rounded-r-full opacity-0 group-hover:opacity-100" />
+                {renderIcon(evt.iconType)}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between text-[11px] mb-1.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[#94A3B8] font-mono-tech">{evt.time}</span>
+                      <span className="text-[#2563EB] font-medium uppercase">{evt.category}</span>
+                    </div>
+                    {renderBadge(evt.severity)}
                   </div>
-                  {renderBadge(evt.severity)}
+                  <div className="text-[14px] font-semibold text-[#0F172A] leading-snug group-hover:text-[#2563EB] transition-colors">
+                    {evt.title}
+                  </div>
+                  <p className="text-[13px] text-[#64748B] leading-relaxed mt-1 line-clamp-2">
+                    {evt.description}
+                  </p>
                 </div>
-
-                <div className="text-[14px] font-semibold text-[#0F172A] leading-snug group-hover:text-[#2563EB] transition-colors">
-                  {evt.title}
-                </div>
-
-                <p className="text-[13px] text-[#64748B] leading-relaxed mt-1 line-clamp-2">
-                  {evt.description}
-                </p>
               </div>
+            ))
+          ) : (
+            <div className="py-8 text-center text-[13px] text-[#64748B]">
+              Intelligence stream unavailable.
             </div>
-          ))}
+          )}
         </div>
       </div>
 
