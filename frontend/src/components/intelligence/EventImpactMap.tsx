@@ -4,7 +4,6 @@ import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { getEvents, getEventById, EventImpactData } from '../../services/eventApi';
 import { MarketView } from './MarketView';
-import { RiskView } from './RiskView';
 
 import { QueryResponse } from '../../types/api';
 import { useTheme } from '../../context/ThemeContext';
@@ -43,7 +42,7 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<{ id: string, marker: maplibregl.Marker, type: string }[]>([]);
   
-  const [activeTab, setActiveTab] = useState<'MAP' | 'MARKET' | 'RISK'>('MAP');
+  const [activeTab, setActiveTab] = useState<'MAP' | 'MARKET'>('MAP');
   const [layersVisible, setLayersVisible] = useState({
     storm: true, cone: true, refineries: true, ports: true, pipelines: true,
   });
@@ -337,8 +336,8 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
             )}
           </h2>
           <div className="flex items-center gap-2 p-1 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-[#334155] rounded-lg">
-            {['MAP', 'MARKET', 'RISK'].map(tab => {
-              const label = tab === 'MAP' ? 'MAP VIEW' : tab === 'MARKET' ? 'MARKET VIEW' : 'RISK VIEW';
+            {['MAP', 'MARKET'].map(tab => {
+              const label = tab === 'MAP' ? 'MAP VIEW' : 'MARKET VIEW';
               const isActive = activeTab === tab;
               return (
                 <button
@@ -541,9 +540,6 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
             selectedAsset={selectedAsset} 
             onSelectAsset={setSelectedAsset} 
           />
-        )}
-        {activeTab === 'RISK' && (
-          <RiskView isSimulation={isDemoData} selectedAsset={selectedAsset} />
         )}
 
 
