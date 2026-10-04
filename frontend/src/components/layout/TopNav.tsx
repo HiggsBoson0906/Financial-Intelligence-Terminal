@@ -22,6 +22,7 @@ export const TopNav: React.FC<TopNavProps> = ({
     { id: 'news', label: 'NEWS' },
     { id: 'weather', label: 'WEATHER' },
     { id: 'portfolio', label: 'PORTFOLIO' },
+    { id: 'historical', label: 'HISTORICAL DATA' },
   ];
 
   // Handle scroll effect

@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { MoreHorizontal, Plus, Minus, Locate, ExternalLink, X, Maximize } from 'lucide-react';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { getEvents, getEventById, EventImpactData } from '../../services/eventApi';
-import { MarketView } from './MarketView';
+import { EventImpactData } from '../../services/eventApi';
+import { HistoricalDataView } from './HistoricalDataView';
 
 import { QueryResponse } from '../../types/api';
 import { useTheme } from '../../context/ThemeContext';
@@ -42,7 +42,7 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<{ id: string, marker: maplibregl.Marker, type: string }[]>([]);
   
-  const [activeTab, setActiveTab] = useState<'MAP' | 'MARKET'>('MAP');
+  const [activeTab, setActiveTab] = useState<'MAP' | 'HISTORICAL'>('MAP');
   const [layersVisible, setLayersVisible] = useState({
     storm: true, cone: true, refineries: true, ports: true, pipelines: true,
   });
@@ -336,8 +336,8 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
             )}
           </h2>
           <div className="flex items-center gap-2 p-1 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-[#334155] rounded-lg">
-            {['MAP', 'MARKET'].map(tab => {
-              const label = tab === 'MAP' ? 'MAP VIEW' : 'MARKET VIEW';
+            {['MAP', 'HISTORICAL'].map(tab => {
+              const label = tab === 'MAP' ? 'MAP VIEW' : 'HISTORICAL DATA';
               const isActive = activeTab === tab;
               return (
                 <button
@@ -534,9 +534,8 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
         </div> {/* End Map View Layer */}
 
         {/* Other Views Layer */}
-        {activeTab === 'MARKET' && (
-          <MarketView 
-            isSimulation={isDemoData} 
+        {activeTab === 'HISTORICAL' && (
+          <HistoricalDataView 
             selectedAsset={selectedAsset} 
             onSelectAsset={setSelectedAsset} 
           />

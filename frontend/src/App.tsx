@@ -13,12 +13,13 @@ import { ScenarioLabSection } from './components/bottom/ScenarioLabSection';
 import { SourcesAndData } from './components/intelligence/SourcesAndData';
 import { AiIntelligenceBrief } from './components/intelligence/AiIntelligenceBrief';
 import { PipelineAnimation } from './components/intelligence/PipelineAnimation';
-import { MarketView } from './components/intelligence/MarketView';
+import { HistoricalDataView } from './components/intelligence/HistoricalDataView';
 import { RiskView } from './components/intelligence/RiskView';
 import { useAnalysisQuery } from './hooks/useAnalysisQuery';
 import { PortfolioPage } from './pages/PortfolioPage';
 import { NewsPage } from './pages/NewsPage';
 import { WeatherPage } from './pages/WeatherPage';
+import { HistoricalDataPage } from './pages/HistoricalDataPage';
 import { curatedNews } from './data/curatedNews';
 
 export function App() {
@@ -260,7 +261,7 @@ export function App() {
                 {/* 5 & 6. SEMANTIC & RISK ANALYSIS */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="w-full h-[450px]">
-                    <MarketView selectedAsset="WTI" onSelectAsset={() => {}} isSimulation={queryData?.data_quality?.overall_status !== 'good'} data={queryData} />
+                    <HistoricalDataView onNavigateToFullPage={() => setActivePage('historical')} />
                   </div>
                   <div className="w-full h-[450px]">
                     <RiskView isSimulation={queryData?.data_quality?.overall_status !== 'good'} selectedAsset="WTI" data={queryData} />
@@ -304,6 +305,7 @@ export function App() {
         {activePage === 'portfolio' && <PortfolioPage />}
         {activePage === 'news' && <NewsPage />}
         {activePage === 'weather' && <WeatherPage />}
+        {activePage === 'historical' && <HistoricalDataPage />}
 
       </main>
     </div>

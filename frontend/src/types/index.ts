@@ -4,7 +4,8 @@ export type ActivePage =
   | 'home' 
   | 'news' 
   | 'weather' 
-  | 'portfolio';
+  | 'portfolio'
+  | 'historical';
 
 export interface MarketTicker {
   symbol: string;
