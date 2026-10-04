@@ -86,7 +86,10 @@ export const AiIntelligenceBrief: React.FC<AiIntelligenceBriefProps> = ({ data, 
     try {
       const res = await fetch(`${API_BASE_URL}/api/v1/query/follow-up`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
+        },
         body: JSON.stringify({ query: question, parent_run_id: data.run_id })
       });
       const json = await res.json();

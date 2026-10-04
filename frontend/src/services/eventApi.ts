@@ -73,7 +73,9 @@ export interface EventImpactData {
 }
 
 export const getEvents = async (): Promise<EventImpactData[]> => {
-  const response = await fetch(`${API_BASE_URL}/api/v1/events`);
+  const response = await fetch(`${API_BASE_URL}/api/v1/events`, {
+    headers: { 'ngrok-skip-browser-warning': 'true' }
+  });
   if (!response.ok) {
     throw new Error('Failed to fetch events');
   }
@@ -81,7 +83,9 @@ export const getEvents = async (): Promise<EventImpactData[]> => {
 };
 
 export const getEventById = async (eventId: string): Promise<EventImpactData> => {
-  const response = await fetch(`${API_BASE_URL}/api/v1/events/${eventId}`);
+  const response = await fetch(`${API_BASE_URL}/api/v1/events/${eventId}`, {
+    headers: { 'ngrok-skip-browser-warning': 'true' }
+  });
   if (!response.ok) {
     throw new Error('Failed to fetch event details');
   }

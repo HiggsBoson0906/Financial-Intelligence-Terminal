@@ -18,7 +18,9 @@ export const MARKET_DATA_MODE: 'demo' | 'live' = 'demo';
 
 // Future API fetching function
 export async function fetchLiveMarketData(symbol: string, timeRange: string): Promise<MarketSeries> {
-  const response = await fetch(`/api/v1/market/${symbol}?range=${timeRange}`);
+  const response = await fetch(`/api/v1/market/${symbol}?range=${timeRange}`, {
+    headers: { 'ngrok-skip-browser-warning': 'true' }
+  });
   if (!response.ok) {
     throw new Error('Market data unavailable');
   }

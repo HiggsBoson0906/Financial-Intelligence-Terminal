@@ -21,7 +21,9 @@ export const WeatherPage: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/events/weather`);
+      const res = await fetch(`${API_BASE_URL}/api/v1/events/weather`, {
+        headers: { 'ngrok-skip-browser-warning': 'true' }
+      });
       if (!res.ok) throw new Error('Failed to fetch live weather data');
       const json = await res.json();
       setData(json);

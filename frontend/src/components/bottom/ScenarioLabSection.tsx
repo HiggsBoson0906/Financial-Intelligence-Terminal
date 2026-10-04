@@ -54,7 +54,8 @@ export const ScenarioLabSection: React.FC<ScenarioLabSectionProps> = ({ data }) 
       const response = await fetch(`${API_BASE_URL}/api/v1/scenario/simulate`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
         },
         body: JSON.stringify({
           event_intensity: intensity,
