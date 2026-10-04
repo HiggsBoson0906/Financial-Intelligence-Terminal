@@ -59,6 +59,22 @@ def node_parse_query(state: AnalysisState) -> AnalysisState:
     state.user_intent = intent
     state.symbols = intent.get("symbols", [])
     
+    # Strictly populate primary event_context from user_intent (parsed user query)
+    event_name = intent.get("event_name") or intent.get("event_type") or "Not specified"
+    event_type = intent.get("event_type") or "Not specified"
+    region = intent.get("region") or "Not specified"
+    category = intent.get("category")
+    severity = f"Category {category}" if category else "Not specified"
+    
+    state.event_context = {
+        "event_name": event_name,
+        "event_type": event_type,
+        "region": region,
+        "severity": severity,
+        "category": f"Category {category}" if category else ("Not specified" if event_name == "Not specified" else event_name),
+        "normalized_summary": f"Event: {event_name} | Region: {region}"
+    }
+    
     state.agent_trace.append(
         AgentTrace(
             node="parse_query",
@@ -68,7 +84,7 @@ def node_parse_query(state: AnalysisState) -> AnalysisState:
             completed_at=datetime.now(timezone.utc),
             latency_ms=round((time.time() - start) * 1000, 2),
             inputs_used=["query"],
-            outputs_generated=["user_intent", "symbols"]
+            outputs_generated=["user_intent", "symbols", "event_context"]
         )
     )
     return state
@@ -146,10 +162,8 @@ def node_historical_rag(state: AnalysisState) -> AnalysisState:
         rag_response = retrieve_similar_events(state.query, top_k=3)
         state.historical_matches = rag_response
         
-        # Populate event context for easy access
-        if rag_response.get("matches"):
-            top_match = rag_response["matches"][0]
-            state.event_context = top_match.get("event_context", {})
+        # NEVER overwrite primary event_context with historical RAG match.
+        # Historical context remains isolated in state.historical_matches and state.scenario.
             
         # Add evidence
         state.evidence.append(
@@ -178,7 +192,7 @@ def node_historical_rag(state: AnalysisState) -> AnalysisState:
             completed_at=datetime.now(timezone.utc),
             latency_ms=round((time.time() - start) * 1000, 2),
             inputs_used=["query"],
-            outputs_generated=["historical_matches", "event_context"],
+            outputs_generated=["historical_matches"],
             sources=["pgvector"]
         )
     )

@@ -12,7 +12,7 @@ export const MarketView: React.FC<{
 }> = ({ data }) => {
 
   const sentiment = data?.sentiment;
-  const hasFinbert = sentiment?.overall_sentiment !== undefined && sentiment?.status !== 'fallback' && sentiment?.model === 'ProsusAI/finbert';
+  const hasFinbert = Boolean(sentiment?.overall_sentiment && sentiment?.status !== 'fallback' && sentiment?.status !== 'unavailable' && sentiment?.model === 'ProsusAI/finbert');
   
   // Try to use real FinBERT values if available and valid
   const isPositive = sentiment?.overall_sentiment === 'positive';
@@ -24,8 +24,8 @@ export const MarketView: React.FC<{
 
   // Extract query semantics
   const queryStr = data?.query || '';
-  const eventName = data?.event?.event_name || 'Hurricane';
-  const regionName = data?.event?.region || 'US Gulf Coast';
+  const eventName = data?.event?.event_name && data.event.event_name !== 'Not specified' ? data.event.event_name : (data?.event?.event_type && data.event.event_type !== 'Not specified' ? data.event.event_type : 'Not specified');
+  const regionName = data?.event?.region && data.event.region !== 'Not specified' ? data.event.region : 'Not specified';
   
   // We can derive assets from query or market_context
   const assets = data?.market_context ? Object.keys(data.market_context).join(' · ') : 'XOM · CVX · COP';

@@ -228,11 +228,11 @@ export const AiIntelligenceBrief: React.FC<AiIntelligenceBriefProps> = ({ data, 
                   <tbody>
                     <tr className="border-b border-[#F1F5F9] dark:border-slate-800">
                       <td className="py-2 text-[#64748B] dark:text-slate-400 font-sans text-[11px] uppercase tracking-wider w-1/3">Event</td>
-                      <td className="py-2 text-right">{data.event?.severity ? `${data.event.severity} Hurricane` : 'Unspecified'}</td>
+                      <td className="py-2 text-right">{data.event?.event_name && data.event.event_name !== 'Not specified' ? data.event.event_name : (data.event?.event_type && data.event.event_type !== 'Not specified' ? data.event.event_type : 'Not specified')}</td>
                     </tr>
                     <tr className="border-b border-[#F1F5F9] dark:border-slate-800">
                       <td className="py-2 text-[#64748B] dark:text-slate-400 font-sans text-[11px] uppercase tracking-wider">Region</td>
-                      <td className="py-2 text-right">{data.event?.region || 'Global'}</td>
+                      <td className="py-2 text-right">{data.event?.region && data.event.region !== 'Not specified' ? data.event.region : 'Not specified'}</td>
                     </tr>
                     <tr className="border-b border-[#F1F5F9] dark:border-slate-800">
                       <td className="py-2 text-[#64748B] dark:text-slate-400 font-sans text-[11px] uppercase tracking-wider">Assets</td>
