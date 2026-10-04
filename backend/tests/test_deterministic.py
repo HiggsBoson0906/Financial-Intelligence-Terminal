@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 from app.api.query import submit_query
 from app.schemas.query import QueryRequest
-from app.services.gemini_service import GeminiService
+from app.services.groq_service import GroqService
 from app.agents.orchestrator import run_analysis
 from app.services.confidence_service import confidence_service
 
@@ -18,23 +18,23 @@ def test_deterministic_values_preserved():
     # Capture deterministic values from the baseline state
     orig_risk = state.risk
     orig_scenario = state.scenario
-    orig_recs = [r.model_dump() for r in state.recommendations]
-    orig_evidence = [e.model_dump() for e in state.evidence]
+    orig_recs = [r if isinstance(r, dict) else r.model_dump() for r in state.recommendations]
+    orig_evidence = [e if isinstance(e, dict) else e.model_dump() for e in state.evidence]
     orig_cross_asset = state.cross_asset_context
 
-    # 2. Mock orchestrate to return the exact same baseline state dict, and Mock Gemini
+    # 2. Mock orchestrate to return the exact same baseline state dict, and Mock LLM
     with patch("app.api.query.orchestrate") as mock_orchestrate, \
-         patch("app.services.gemini_service.gemini_service.synthesize_analysis") as mock_gemini:
+         patch("app.services.groq_service.groq_service.synthesize_analysis") as mock_llm:
         
         mock_orchestrate.return_value = state_dict
         
-        from app.schemas.gemini import GeminiSynthesis
-        fake_synthesis = GeminiSynthesis(
-            summary="Gemini test summary.",
+        from app.schemas.llm import IntelligenceSynthesis
+        fake_synthesis = IntelligenceSynthesis(
+            summary="LLM test summary.",
             details=["detail"],
             key_insights=["insight"]
         )
-        mock_gemini.return_value = (fake_synthesis, 100.0, "success", {"model_used": "gemini-3.1-flash-lite", "attempts": 1, "fallback_used": False})
+        mock_llm.return_value = (fake_synthesis, 100.0, "success", {"model_used": "openai/gpt-oss-120b", "attempts": 1, "fallback_used": False, "status": "success", "provider": "groq"})
         
         req = QueryRequest(query=query)
         response = submit_query(req)

@@ -12,6 +12,7 @@ import { ScenarioLabSection } from './components/bottom/ScenarioLabSection';
 
 import { SourcesAndData } from './components/intelligence/SourcesAndData';
 import { AiIntelligenceBrief } from './components/intelligence/AiIntelligenceBrief';
+import { PipelineAnimation } from './components/intelligence/PipelineAnimation';
 import { MarketView } from './components/intelligence/MarketView';
 import { RiskView } from './components/intelligence/RiskView';
 import { useAnalysisQuery } from './hooks/useAnalysisQuery';
@@ -23,6 +24,8 @@ import { curatedNews } from './data/curatedNews';
 export function App() {
   const [activePage, setActivePage] = useState<ActivePage>('home');
   const [currentTime, setCurrentTime] = useState<string>('12:43:08 EST');
+  const [animationComplete, setAnimationComplete] = useState<boolean>(false);
+
 
   // Real Query State
   const { data: queryData, status: queryStatus, error: queryError, runQuery } = useAnalysisQuery();
@@ -55,6 +58,7 @@ export function App() {
 
   // Handle Query Execution
   const handleRunAnalysis = (query: string) => {
+    setAnimationComplete(false);
     runQuery(query);
   };
 
@@ -81,27 +85,48 @@ export function App() {
         </div>
         
         {/* SYNTHETIC PORTFOLIO SNAPSHOT */}
-        <div className="lg:col-span-4 fit-card p-6 h-[600px] flex flex-col overflow-y-auto">
-          <div className="flex items-center justify-between mb-4 pb-4 border-b border-slate-200">
-             <h3 className="font-bold text-slate-900">Portfolio Snapshot</h3>
+        <div className="lg:col-span-4 bg-white border border-[#E2E8F0] shadow-sm rounded-xl p-6 h-[600px] flex flex-col justify-between overflow-hidden">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+               <h3 className="text-[12px] font-bold text-[#64748B] uppercase tracking-widest">PORTFOLIO SNAPSHOT</h3>
+               <span className="text-[10px] font-bold text-blue-900 bg-blue-50 px-2 py-0.5 rounded uppercase tracking-wider border border-blue-200">SYNTHETIC</span>
+            </div>
+            
+            <div className="mb-6">
+              <div className="text-[32px] font-bold text-[#0F172A] leading-none mb-1">$10,000,000</div>
+              <div className="text-[11px] font-bold text-[#64748B] uppercase tracking-widest">SYNTHETIC DEMO PORTFOLIO</div>
+            </div>
+            
+            <hr className="border-[#F1F5F9] my-6" />
+            
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div>
+                 <div className="text-[10px] font-bold text-[#64748B] uppercase tracking-widest mb-1">ENERGY EXPOSURE</div>
+                 <div className="text-[24px] font-bold text-[#0F172A] leading-none">90<span className="text-[16px] text-[#64748B]">%</span></div>
+              </div>
+              <div>
+                 <div className="text-[10px] font-bold text-[#64748B] uppercase tracking-widest mb-1">HOLDINGS</div>
+                 <div className="text-[24px] font-bold text-[#0F172A] leading-none">6</div>
+              </div>
+            </div>
+            
+            <div className="bg-[#F8FAFC] border border-[#F1F5F9] rounded-lg p-4 font-mono-tech text-[12px] text-[#334155]">
+               <div className="flex justify-between mb-2">
+                 <span><span className="font-bold text-[#0F172A]">XOM</span> 30%</span>
+                 <span><span className="font-bold text-[#0F172A]">CVX</span> 20%</span>
+                 <span><span className="font-bold text-[#0F172A]">COP</span> 20%</span>
+               </div>
+               <div className="flex justify-between">
+                 <span><span className="font-bold text-[#0F172A]">OXY</span> 10%</span>
+                 <span><span className="font-bold text-[#0F172A]">XLE</span> 10%</span>
+                 <span><span className="font-bold text-[#0F172A]">SPY</span> 10%</span>
+               </div>
+            </div>
           </div>
-          <p className="text-sm text-slate-600 mb-6">
-            $10M synthetic energy-heavy portfolio (XOM 30%, CVX 20%, COP 20%, OXY 10%, XLE 10%, SPY 10%).
-          </p>
           
-          <div className="mt-4 p-4 bg-slate-50 border border-slate-200 rounded-lg">
-             <div className="text-xs font-bold text-slate-500 mb-2 uppercase">Current Risk (VaR)</div>
-             <div className="text-2xl font-bold text-red-600">$450,000</div>
-          </div>
-
-          <div className="mt-4 p-4 bg-slate-50 border border-slate-200 rounded-lg">
-             <div className="text-xs font-bold text-slate-500 mb-2 uppercase">Energy Exposure</div>
-             <div className="text-xl font-bold text-slate-900">90%</div>
-          </div>
-
-          <div className="flex justify-center mt-auto">
-            <button onClick={() => setActivePage('portfolio')} className="w-full py-2.5 bg-slate-100 text-slate-700 font-bold rounded hover:bg-slate-200 text-sm border border-slate-300">
-              VIEW FULL PORTFOLIO & RISK
+          <div className="pt-4 mt-auto border-t border-[#F1F5F9]">
+            <button onClick={() => setActivePage('portfolio')} className="w-full py-3 text-[#0F172A] font-bold hover:bg-[#F8FAFC] text-[11px] uppercase tracking-widest border border-[#E2E8F0] rounded shadow-sm transition-colors flex items-center justify-center gap-2">
+              VIEW PORTFOLIO &rarr;
             </button>
           </div>
         </div>
@@ -187,25 +212,31 @@ export function App() {
         {/* ACTIVE QUERY WORKSPACE - ONLY SHOW ON HOME */}
         {activePage === 'home' && (queryStatus === 'RUNNING' || queryStatus === 'COMPLETED') && (
           <div ref={analysisWorkspaceRef} className="space-y-6 pt-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            {/* 1. QUERY STATUS / RUN INFORMATION */}
-            <div className="flex items-center justify-between text-xs font-mono text-gray-500 pb-2 border-b border-gray-200">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="uppercase tracking-wider font-bold">STATUS:</span>
-                  <span className={queryStatus === 'RUNNING' ? 'text-amber-600 font-bold' : 'text-green-600 font-bold'}>
-                    {queryStatus === 'RUNNING' ? 'ANALYSIS IN PROGRESS...' : 'COMPLETED'}
-                  </span>
+            {/* 1. PIPELINE ANIMATION OR QUERY STATUS */}
+            {!animationComplete || queryStatus === 'RUNNING' ? (
+               <PipelineAnimation 
+                  queryText={queryData?.query || "Analyzing Query..."}
+                  backendStatus={queryStatus}
+                  onAnimationComplete={() => setAnimationComplete(true)}
+               />
+            ) : (
+              <div className="flex items-center justify-between text-xs font-mono text-gray-500 pb-2 border-b border-gray-200">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="uppercase tracking-wider font-bold">STATUS:</span>
+                    <span className="text-emerald-600 font-bold">COMPLETED</span>
+                  </div>
+                  {queryData?.run_id && (
+                    <div>RUN_ID: {queryData.run_id}</div>
+                  )}
                 </div>
-                {queryData?.run_id && (
-                  <div>RUN_ID: {queryData.run_id}</div>
+                {queryData?.latency && (
+                  <div>LATENCY: {queryData.latency.total_ms.toFixed(0)}ms</div>
                 )}
               </div>
-              {queryData?.latency && (
-                <div>LATENCY: {queryData.latency.total_ms.toFixed(0)}ms</div>
-              )}
-            </div>
+            )}
 
-            {queryStatus === 'COMPLETED' && queryData && (
+            {animationComplete && queryStatus === 'COMPLETED' && queryData && (
               <>
                 {/* 2. AI INTELLIGENCE BRIEF */}
                 <div className="w-full">
@@ -251,7 +282,7 @@ export function App() {
                 </div>
 
                 {/* 10. SOURCES & DATA */}
-                <div className="w-full" id="sources-and-data">
+                <div className="w-full scroll-m-24" id="sources-and-data">
                   <SourcesAndData data={queryData} />
                 </div>
 

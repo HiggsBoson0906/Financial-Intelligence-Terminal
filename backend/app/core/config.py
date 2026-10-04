@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from pydantic_settings import BaseSettings
 from pydantic import ConfigDict, field_validator
 
@@ -31,11 +32,18 @@ class Settings(BaseSettings):
     EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
     EMBEDDING_DIM: int = int(os.getenv("EMBEDDING_DIM", 384))
 
-    # Gemini
-    GEMINI_API_KEY: str | None = None
-    GEMINI_MODEL: str = "gemini-3.8-flash"
-    GEMINI_MODELS: str | None = None
+    # Groq
+    GROQ_API_KEY: str | None = None
+    GROQ_MODEL: str = "openai/gpt-oss-120b"
+    GROQ_MODELS: str | None = None
 
-    model_config = ConfigDict(case_sensitive=True, env_file=".env", extra="ignore")
+    # FRED
+    FRED_API_KEY: str | None = None
+
+    model_config = ConfigDict(
+        case_sensitive=True, 
+        env_file=str(Path(__file__).resolve().parent.parent.parent.parent / ".env"), 
+        extra="ignore"
+    )
 
 settings = Settings()

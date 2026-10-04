@@ -79,7 +79,20 @@ def node_load_context(state: AnalysisState) -> AnalysisState:
     start = time.time()
     
     # Portfolio is mocked in risk agent, but we can set up the struct here
-    state.portfolio_context = state.portfolio_context or {}
+    if not state.portfolio_context or not state.portfolio_context.get("weights"):
+        state.portfolio_context = {
+            "type": "synthetic",
+            "source": "demo_portfolio",
+            "total_value": 10000000.0,
+            "weights": {
+                "XOM": 0.3,
+                "CVX": 0.2,
+                "COP": 0.2,
+                "OXY": 0.1,
+                "XLE": 0.1,
+                "SPY": 0.1
+            }
+        }
     
     # Fetch Market Data
     market_data = {}

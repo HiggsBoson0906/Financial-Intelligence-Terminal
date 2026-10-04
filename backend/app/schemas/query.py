@@ -7,10 +7,23 @@ class QueryRequest(BaseModel):
     conversation_id: Optional[str] = None
     parent_run_id: Optional[str] = None
 
-class GeminiMetadata(BaseModel):
+class LLMMetadata(BaseModel):
+    provider: Optional[str] = None
     model_used: Optional[str] = None
     attempts: int = 0
     fallback_used: bool = False
+    status: Optional[str] = None
+
+class SourceLink(BaseModel):
+    id: str
+    name: str
+    category: str
+    url: str
+    title: Optional[str] = None
+    description: Optional[str] = None
+    status: str
+    provider: Optional[str] = None
+    citation: Optional[str] = None
 
 class PortfolioAction(BaseModel):
     available: bool = True
@@ -68,7 +81,7 @@ class LatencyResponse(BaseModel):
     agents_ms: float = 0.0
     rag_ms: float = 0.0
     risk_ms: float = 0.0
-    gemini_ms: float = 0.0
+    llm_ms: float = 0.0
 
 class QueryResponse(BaseModel):
     run_id: str
@@ -93,4 +106,6 @@ class QueryResponse(BaseModel):
     
     data_quality: DataQualityResponse = Field(default_factory=DataQualityResponse)
     latency: LatencyResponse = Field(default_factory=LatencyResponse)
-    gemini: GeminiMetadata = Field(default_factory=GeminiMetadata)
+    llm: LLMMetadata = Field(default_factory=LLMMetadata)
+    data_sources: List[SourceLink] = Field(default_factory=list)
+    web_sources: List[SourceLink] = Field(default_factory=list)

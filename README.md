@@ -13,7 +13,7 @@ The eventual architecture relies on a robust stack to support data ingestion, mu
 
 - **Frontend:** React + Vite + Tailwind
 - **Communication:** HTTPS
-- **Backend Services:** FastAPI + LangGraph + ML + RAG + Risk Engine + Gemini
+- **Backend Services:** FastAPI + LangGraph + ML + RAG + Risk Engine + Grok
 - **Databases:** PostgreSQL + pgvector (financial/application data), MongoDB Atlas (authentication)
 - **Storage:** S3 (optional datasets/model artifacts)
 
@@ -24,7 +24,7 @@ These agents will be orchestrated using LangGraph to interact and synthesize ins
 - **Quantitative Risk Agent**: Computes portfolio risks using deterministic quantitative models.
 - **Hedging Strategy Agent**: Suggests risk mitigation and hedging strategies based on the current market environment.
 
-*Note: Gemini is intended for reasoning, synthesis, and explanation rather than performing core financial or deterministic calculations.*
+*Note: Grok is intended for reasoning, synthesis, and explanation rather than performing core financial or deterministic calculations.*
 
 ## 5. Planned Data Sources
 The system will combine:

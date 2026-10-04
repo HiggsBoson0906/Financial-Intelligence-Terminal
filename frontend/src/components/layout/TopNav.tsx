@@ -16,11 +16,12 @@ export const TopNav: React.FC<TopNavProps> = ({
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const navTabs: Array<{ id: ActivePage; label: string }> = [
+  const navTabs: Array<{ id: string; label: string }> = [
     { id: 'home', label: 'HOME' },
     { id: 'news', label: 'NEWS' },
     { id: 'weather', label: 'WEATHER' },
     { id: 'portfolio', label: 'PORTFOLIO' },
+    { id: 'evidence', label: 'EVIDENCE' },
   ];
 
   // Handle scroll effect
@@ -37,7 +38,7 @@ export const TopNav: React.FC<TopNavProps> = ({
       <div className={`max-w-[1200px] mx-auto bg-white border border-[#E2E8F0] rounded-xl flex items-center justify-between px-6 transition-all duration-300 ${isScrolled ? 'h-14 shadow-md' : 'h-16 shadow-sm'}`}>
         
         {/* Left: Brand */}
-        <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setActivePage('home')}>
+        <a href="/" className="flex items-center gap-3 cursor-pointer group">
           {/* Subtle pillar motif */}
           <div className="flex items-end gap-[3px] transition-transform duration-300 group-hover:-translate-y-0.5">
             <div className="w-1.5 h-3.5 bg-blue-300 rounded-sm"></div>
@@ -47,7 +48,7 @@ export const TopNav: React.FC<TopNavProps> = ({
           <span className="text-[22px] font-extrabold tracking-tight text-[#0F172A] font-sans">
             PillerStreet
           </span>
-        </div>
+        </a>
 
         {/* Center: Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-2">
@@ -56,7 +57,16 @@ export const TopNav: React.FC<TopNavProps> = ({
             return (
               <button
                 key={tab.id}
-                onClick={() => setActivePage(tab.id)}
+                onClick={() => {
+                  if (tab.id === 'evidence') {
+                    setActivePage('home');
+                    setTimeout(() => {
+                      document.getElementById('sources-and-data')?.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                  } else {
+                    setActivePage(tab.id as ActivePage);
+                  }
+                }}
                 className={`relative px-4 py-2 text-[12px] font-bold tracking-widest transition-all duration-200 rounded-lg overflow-hidden ${
                   isActive
                     ? 'text-blue-900 bg-blue-50'
@@ -97,7 +107,14 @@ export const TopNav: React.FC<TopNavProps> = ({
               <button
                 key={tab.id}
                 onClick={() => {
-                  setActivePage(tab.id);
+                  if (tab.id === 'evidence') {
+                    setActivePage('home');
+                    setTimeout(() => {
+                      document.getElementById('sources-and-data')?.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                  } else {
+                    setActivePage(tab.id as ActivePage);
+                  }
                   setIsMobileMenuOpen(false);
                 }}
                 className={`px-4 py-3 text-[13px] font-bold tracking-widest text-left rounded-lg transition-colors ${

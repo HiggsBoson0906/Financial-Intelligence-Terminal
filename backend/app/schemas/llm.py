@@ -9,8 +9,8 @@ class RecommendationExplanation(BaseModel):
     confidence_interpretation: str = Field(description="Explanation of the supplied analytical confidence (without representing it as probability of success).")
     supporting_evidence: List[str] = Field(description="List of evidence IDs supporting this recommendation (must exist in backend evidence).")
 
-class GeminiSynthesis(BaseModel):
-    """Structured response schema for Gemini synthesis."""
+class IntelligenceSynthesis(BaseModel):
+    """Structured response schema for LLM intelligence synthesis."""
     summary: str = Field(description="Concise executive summary.")
     executive_assessment: str = Field(description="2-4 sentence analyst-style assessment connecting the event, portfolio exposure, risk, and historical context.", default="")
     key_findings: List[str] = Field(description="Important findings", default_factory=list)

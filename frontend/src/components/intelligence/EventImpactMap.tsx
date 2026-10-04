@@ -528,26 +528,7 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
         )}
 
 
-        {/* Bottom Floating Expand Button */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 pointer-events-auto">
-          <button 
-            onClick={toggleExpand}
-            className="flex items-center gap-2 px-4 py-1.5 bg-white/95 backdrop-blur-sm border border-[#E2E8F0] shadow-sm hover:shadow hover:bg-white rounded-full text-[#475569] hover:text-[#0F172A] transition-all font-medium text-[11px] uppercase tracking-wider"
-            title={isExpanded ? "Collapse analysis" : "Expand analysis"}
-          >
-            {isExpanded ? (
-              <>
-                <X size={14} />
-                Collapse
-              </>
-            ) : (
-              <>
-                <Maximize size={14} />
-                Expand
-              </>
-            )}
-          </button>
-        </div>
+
       </div>
       )}
     </div>

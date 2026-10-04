@@ -18,6 +18,9 @@ export const ScenarioLabSection: React.FC<ScenarioLabSectionProps> = ({ data }) 
   const [energyExposure, setEnergyExposure] = useState<number>(0);
   const [hedgeSize, setHedgeSize] = useState<number>(0);
   
+  const [simState, setSimState] = useState<'READY' | 'SIMULATING' | 'SUCCESS' | 'ERROR'>('READY');
+  const [simResult, setSimResult] = useState<any>(null);
+  
   React.useEffect(() => {
     setEnergyExposure(initialEnergy);
   }, [initialEnergy]);
@@ -44,20 +47,46 @@ export const ScenarioLabSection: React.FC<ScenarioLabSectionProps> = ({ data }) 
     ? data.scenario.portfolio_impact.stressed_expected_shortfall / 1000 
     : baseEs * (1 + (baseRiskChange / 100));
 
-  // Dynamic simulation calculations (Further Hedge Simulation)
-  const simVaR = Math.round(stressedVar - (hedgeSize / 20) * (stressedVar * 0.2));
-  const simES = Math.round(stressedEs - (hedgeSize / 20) * (stressedEs * 0.2));
-  const riskReductionFactor = 0.5; // Dynamic factor based on hedge
-  const simRisk = (baseRiskChange - (hedgeSize / 20) * riskReductionFactor).toFixed(1);
-  const riskReduction = (-(hedgeSize / 20) * riskReductionFactor).toFixed(1);
-  const lossReduction = Math.round((stressedVar - simVaR));
-  const hedgeCost = Math.round((hedgeSize / 20) * (baseVar * 0.05));
+  const runSimulation = async () => {
+    setSimState('SIMULATING');
+    try {
+      const response = await fetch('http://localhost:8000/api/v1/scenario/simulate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          event_intensity: intensity,
+          energy_exposure: energyExposure,
+          hedge_size: hedgeSize,
+          portfolio_value: data?.portfolio_context?.total_value || 10000000.0,
+          base_var: baseVar * 1000 // Convert back to full dollars for backend
+        })
+      });
+      if (!response.ok) throw new Error('Simulation failed');
+      const result = await response.json();
+      setSimResult(result);
+      setSimState('SUCCESS');
+    } catch (err) {
+      console.error(err);
+      setSimState('ERROR');
+    }
+  };
 
   const resetSimulation = () => {
     setIntensity(4);
     setEnergyExposure(initialEnergy);
     setHedgeSize(0);
+    setSimState('READY');
+    setSimResult(null);
   };
+  
+  const simVaR = simResult ? Math.round(simResult.stressed_var_95 / 1000) : 0;
+  const simES = simResult ? Math.round(simResult.stressed_expected_shortfall / 1000) : 0;
+  const simRisk = simResult ? simResult.risk_change_percent.toFixed(1) : 0;
+  const riskReduction = simResult ? simResult.risk_reduction_percent.toFixed(1) : 0;
+  const lossReduction = simResult ? Math.round(simResult.expected_loss_reduction / 1000) : 0;
+  const hedgeCost = simResult ? Math.round(simResult.hedge_cost / 1000) : 0;
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-[#E2E8F0] p-6 select-none h-full flex flex-col justify-between">
@@ -157,66 +186,86 @@ export const ScenarioLabSection: React.FC<ScenarioLabSectionProps> = ({ data }) 
                 Backend Scenario &rarr; Simulation Result
               </h3>
               <span className="text-[11px] font-semibold text-[#94A3B8]">
-                SCENARIO &rarr; HEDGED
+                {simState === 'READY' ? 'READY TO SIMULATE' : simState === 'SIMULATING' ? 'SIMULATING...' : simState === 'ERROR' ? 'SCENARIO UNAVAILABLE' : 'SCENARIO → HEDGED'}
               </span>
             </div>
             
-            <div className="flex flex-col tabular-data text-[14px]">
-              {/* Comparison Rows */}
-              <div className="space-y-1 mb-5">
-                <div className="flex justify-between items-center py-1.5 border-b border-[#F8FAFC]">
-                  <span className="text-[#475569] font-medium font-sans">Stressed VaR (95%)</span>
-                  <div className="flex items-center gap-3">
-                    <span className="text-[#DC2626]">${Math.round(stressedVar)}K</span>
-                    <span className="text-[#CBD5E1]">&rarr;</span>
-                    <span className="text-[#16A34A] font-bold">${simVaR}K</span>
+            {simState === 'SUCCESS' && (
+              <div className="flex flex-col tabular-data text-[14px]">
+                {/* Comparison Rows */}
+                <div className="space-y-1 mb-5">
+                  <div className="flex justify-between items-center py-1.5 border-b border-[#F8FAFC]">
+                    <span className="text-[#475569] font-medium font-sans">Stressed VaR (95%)</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[#DC2626]">${Math.round(stressedVar)}K</span>
+                      <span className="text-[#CBD5E1]">&rarr;</span>
+                      <span className="text-[#16A34A] font-bold">${simVaR}K</span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center py-1.5 border-b border-[#F8FAFC]">
+                    <span className="text-[#475569] font-medium font-sans">Stressed Shortfall</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[#DC2626]">${Math.round(stressedEs)}K</span>
+                      <span className="text-[#CBD5E1]">&rarr;</span>
+                      <span className="text-[#16A34A] font-bold">${simES}K</span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center py-1.5">
+                    <span className="text-[#475569] font-medium font-sans">Risk Change</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[#DC2626] font-semibold">+{baseRiskChange.toFixed(1)}%</span>
+                      <span className="text-[#CBD5E1]">&rarr;</span>
+                      <span className="text-[#16A34A] font-bold">+{simRisk}%</span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center py-1.5 border-b border-[#F8FAFC]">
-                  <span className="text-[#475569] font-medium font-sans">Stressed Shortfall</span>
-                  <div className="flex items-center gap-3">
-                    <span className="text-[#DC2626]">${Math.round(stressedEs)}K</span>
-                    <span className="text-[#CBD5E1]">&rarr;</span>
-                    <span className="text-[#16A34A] font-bold">${simES}K</span>
+                {/* Final Simulation Impact */}
+                <div className="bg-[#F8FAFC] border border-[#F1F5F9] rounded-lg p-4 space-y-2 text-[13px]">
+                  <div className="text-[13px] font-semibold text-[#0F172A] mb-3">
+                    Simulation Impact
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#475569] font-medium font-sans">Estimated Risk Reduction</span>
+                    <span className="font-bold text-[#16A34A]">{riskReduction}%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#475569] font-medium font-sans">Expected Loss Reduction</span>
+                    <span className="font-bold text-[#16A34A]">-${lossReduction}K</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-2 mt-2 border-t border-[#E2E8F0]">
+                    <span className="text-[#475569] font-medium font-sans">Hedge Cost</span>
+                    <span className="font-bold text-[#0F172A]">${hedgeCost}K</span>
                   </div>
                 </div>
-
-                <div className="flex justify-between items-center py-1.5">
-                  <span className="text-[#475569] font-medium font-sans">Risk Change</span>
-                  <div className="flex items-center gap-3">
-                    <span className="text-[#DC2626] font-semibold">+{baseRiskChange.toFixed(1)}%</span>
-                    <span className="text-[#CBD5E1]">&rarr;</span>
-                    <span className="text-[#16A34A] font-bold">+{simRisk}%</span>
+                
+                {/* Explanation Text */}
+                <div className="mt-4 text-[12px] text-[#64748B]">
+                  <span className="font-bold text-[#475569] uppercase tracking-wide text-[10px] block mb-1">Why this changes</span>
+                  {hedgeSize > 0 
+                    ? `Simulated hedge reduces modeled downside exposure under the selected Level ${intensity} scenario.`
+                    : `No hedge applied; results represent the unhedged Level ${intensity} scenario.`
+                  }
+                </div>
+              </div>
+            )}
+            
+            {simState !== 'SUCCESS' && (
+              <div className="flex-1 flex flex-col items-center justify-center text-center text-[#94A3B8] text-[13px] h-48 bg-[#F8FAFC] border border-[#F1F5F9] rounded-lg mt-2">
+                {simState === 'SIMULATING' ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-5 h-5 border-2 border-[#2563EB] border-t-transparent rounded-full animate-spin"></div>
+                    <span>Running simulation via RiskEngine...</span>
                   </div>
-                </div>
+                ) : simState === 'ERROR' ? (
+                  <span>Simulation Failed. Check backend logs.</span>
+                ) : (
+                  <span>Adjust controls and click Run Simulation</span>
+                )}
               </div>
-
-              {/* Final Simulation Impact */}
-              <div className="bg-[#F8FAFC] border border-[#F1F5F9] rounded-lg p-4 space-y-2 text-[13px]">
-                <div className="text-[13px] font-semibold text-[#0F172A] mb-3">
-                  Simulation Impact
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-[#475569] font-medium font-sans">Estimated Risk Reduction</span>
-                  <span className="font-bold text-[#16A34A]">{riskReduction}%</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-[#475569] font-medium font-sans">Expected Loss Reduction</span>
-                  <span className="font-bold text-[#16A34A]">-${lossReduction}K</span>
-                </div>
-                <div className="flex justify-between items-center pt-2 mt-2 border-t border-[#E2E8F0]">
-                  <span className="text-[#475569] font-medium font-sans">Hedge Cost</span>
-                  <span className="font-bold text-[#0F172A]">${hedgeCost}K</span>
-                </div>
-              </div>
-              
-              {/* Explanation Text */}
-              <div className="mt-4 text-[12px] text-[#64748B]">
-                <span className="font-bold text-[#475569] uppercase tracking-wide text-[10px] block mb-1">Why this changes</span>
-                Reducing energy exposure and applying a simulated hedge lowers portfolio sensitivity under the selected stress scenario.
-              </div>
-            </div>
+            )}
           </div>
           
           {/* Actions */}
@@ -227,7 +276,11 @@ export const ScenarioLabSection: React.FC<ScenarioLabSectionProps> = ({ data }) 
             >
               Reset
             </button>
-            <button className="px-5 py-2 text-[12px] font-semibold text-white bg-[#0F172A] hover:bg-[#1E293B] rounded shadow-sm transition-colors">
+            <button 
+              onClick={runSimulation}
+              disabled={simState === 'SIMULATING'}
+              className="px-5 py-2 text-[12px] font-semibold text-white bg-[#0F172A] hover:bg-[#1E293B] rounded shadow-sm transition-colors disabled:opacity-50"
+            >
               Run Simulation
             </button>
           </div>

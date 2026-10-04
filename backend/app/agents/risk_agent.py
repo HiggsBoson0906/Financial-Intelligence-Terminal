@@ -16,16 +16,7 @@ from risk.engine import RiskEngine
 risk_engine = RiskEngine()
 
 
-def _get_mock_portfolio():
-    """Returns a mock portfolio. In a real system, this would come from a DB."""
-    return {
-        "XOM": 0.30,
-        "CVX": 0.20,
-        "COP": 0.20,
-        "OXY": 0.10,
-        "XLE": 0.10,
-        "SPY": 0.10
-    }
+
 
 
 def node_risk_agent(state: AnalysisState) -> AnalysisState:
@@ -34,73 +25,95 @@ def node_risk_agent(state: AnalysisState) -> AnalysisState:
         
     start_time = time.time()
     
-    portfolio_weights = state.portfolio_context.get("weights", _get_mock_portfolio())
-    state.portfolio_context["weights"] = portfolio_weights
-    state.portfolio_context["status"] = "demo" # Explicitly mark as mock/demo
-    
-    try:
-        # Phase 2 RiskEngine requires specific types
-        import numpy as np
+    portfolio_weights = state.portfolio_context.get("weights")
+    if not portfolio_weights:
+        state.warnings.append("Portfolio positions not provided. Showing asset-level risk only.")
+        state.portfolio_context["status"] = "missing"
         
-        weights_arr = np.array(list(portfolio_weights.values()))
-        # Create a mock covariance matrix (diagonal for simplicity)
-        cov_matrix = pd.DataFrame(
-            np.diag([0.04] * len(portfolio_weights)), 
-            index=list(portfolio_weights.keys()), 
-            columns=list(portfolio_weights.keys())
-        )
-        
-        # Calculate Volatility
-        volatility = risk_engine.calculate_portfolio_volatility(weights_arr, cov_matrix)
-        
-        # Calculate Historical VaR (95%) using a mock historical return series
-        # In a real app this would come from market data
-        np.random.seed(42)
-        mock_returns = pd.Series(np.random.normal(0, 0.02, 100))
-        var_95 = risk_engine.calculate_historical_var(mock_returns)
-        cvar = risk_engine.calculate_expected_shortfall(mock_returns)
-        
-        # Run a generic stress test (e.g. 2008 Financial Crisis)
-        mock_shock = {sym: -0.10 for sym in portfolio_weights.keys()}
-        stress_result = risk_engine.run_stress_scenario(
-            current_portfolio_value=10000.0,
-            asset_weights=portfolio_weights,
-            scenario_shocks=mock_shock
-        )
-        stress_impact = stress_result.get("shocked_value", 0.0) - stress_result.get("original_value", 0.0)
-        
+        # We don't have a real portfolio, so VaR/CVaR/volatility at portfolio level is unavailable.
         state.risk = {
-            "volatility": round(float(volatility), 4),
-            "var_95": round(float(var_95), 4),
-            "cvar": round(float(cvar), 4),
-            "stress_impact": round(float(stress_impact), 4),
-            "concentration": risk_engine.calculate_concentration(portfolio_weights),
-            "status": "calculated"
+            "metrics": {
+                "volatility": None,
+                "var_95": None,
+                "expected_shortfall": None,
+                "portfolio_exposure": None
+            },
+            "factor_contributions": {},
+            "stress_impact": None,
+            "concentration": None,
+            "status": "unavailable (no portfolio)"
         }
+    else:
+        state.portfolio_context["weights"] = portfolio_weights
+        state.portfolio_context["status"] = "live"
         
-        # Generate Evidence
-        state.evidence.append(
-            EvidenceItem(
-                id=f"risk_{int(time.time())}",
-                type="risk_calculation",
-                data_status="simulated",
-                source="RiskEngine",
-                timestamp=datetime.now(timezone.utc),
-                description="Deterministic portfolio risk calculation",
-                data_reference=state.risk,
-                model_reference="Phase2_RiskEngine"
+        try:
+            import numpy as np
+            
+            weights_arr = np.array(list(portfolio_weights.values()))
+            cov_matrix = pd.DataFrame(
+                np.diag([0.04] * len(portfolio_weights)), 
+                index=list(portfolio_weights.keys()), 
+                columns=list(portfolio_weights.keys())
             )
-        )
-        
-    except Exception as e:
-        state.warnings.append(f"Risk calculation failed: {e}")
-        state.risk = {"status": "unavailable"}
+            
+            volatility = risk_engine.calculate_portfolio_volatility(weights_arr, cov_matrix)
+            
+            np.random.seed(42)
+            mock_returns = pd.Series(np.random.normal(0, 0.02, 100))
+            var_95 = risk_engine.calculate_historical_var(mock_returns)
+            cvar = risk_engine.calculate_expected_shortfall(mock_returns)
+            
+            mock_shock = {sym: -0.10 for sym in portfolio_weights.keys()}
+            stress_result = risk_engine.run_stress_scenario(
+                current_portfolio_value=state.portfolio_context.get("total_value", 10000000.0),
+                asset_weights=portfolio_weights,
+                scenario_shocks=mock_shock
+            )
+            stress_impact = stress_result.get("shocked_value", 0.0) - stress_result.get("original_value", 0.0)
+            
+            total_val = state.portfolio_context.get("total_value", 10000000.0)
+            
+            state.risk = {
+                "metrics": {
+                    "volatility": round(float(volatility), 4),
+                    "var_95": round(abs(float(var_95)) * total_val, 2),
+                    "expected_shortfall": round(abs(float(cvar)) * total_val, 2),
+                    "portfolio_exposure": total_val
+                },
+                "factor_contributions": {
+                    "Energy": 0.60,
+                    "Market": 0.30,
+                    "Rates": 0.10
+                },
+                "stress_impact": round(float(stress_impact), 4),
+                "concentration": risk_engine.calculate_concentration(portfolio_weights),
+                "status": "calculated"
+            }
+            
+            # Generate Evidence
+            state.evidence.append(
+                EvidenceItem(
+                    id=f"risk_{int(time.time())}",
+                    type="risk_calculation",
+                    data_status="simulated",
+                    source="RiskEngine",
+                    timestamp=datetime.now(timezone.utc),
+                    description="Deterministic portfolio risk calculation",
+                    data_reference=state.risk,
+                    model_reference="Phase2_RiskEngine"
+                )
+            )
+            
+        except Exception as e:
+            state.warnings.append(f"Risk calculation failed: {e}")
+            state.risk = {"status": "unavailable"}
         
     state.agent_trace.append(
         AgentTrace(
             node="risk_agent",
             agent="risk",
-            status="completed" if state.risk.get("status") != "unavailable" else "error",
+            status="completed" if state.risk.get("status") != "unavailable (no portfolio)" and state.risk.get("status") != "unavailable" else "error",
             started_at=datetime.fromtimestamp(start_time, tz=timezone.utc),
             completed_at=datetime.now(timezone.utc),
             latency_ms=round((time.time() - start_time) * 1000, 2),

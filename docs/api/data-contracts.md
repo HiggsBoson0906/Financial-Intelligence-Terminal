@@ -25,7 +25,7 @@ The `AuditRecord` contract contains:
 - `user_query`: The original natural language prompt.
 - `agents_called`: List of agents participating in the orchestration.
 - `data_sources`: List of specific data sources accessed.
-- `model_versions`: The specific LLMs or ML models used (e.g., `gemini-1.5-pro`, `finbert-v2`).
+- `model_versions`: The specific LLMs or ML models used (e.g., `grok-1.5-pro`, `finbert-v2`).
 - `retrieved_events`: List of historical events fetched via RAG.
 - `retrieved_documents`: List of unstructured documents referenced.
 - `risk_calculations`: Deterministic calculation inputs/outputs.

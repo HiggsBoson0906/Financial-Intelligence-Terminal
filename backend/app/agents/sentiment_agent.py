@@ -21,26 +21,7 @@ def get_sentiment_service():
         _sentiment_service = SentimentService()
     return _sentiment_service
 
-# Mock News Provider since we lack live keys
-def get_mock_news(query: str, event_type: str = None):
-    # Dummy logic to simulate news retrieval
-    if not query or not query.strip():
-        return []
-        
-    return [
-        {
-            "id": "news_1",
-            "title": f"Concerns grow as {event_type or 'storm'} approaches.",
-            "content": "Energy markets are reacting negatively due to potential supply disruptions.",
-            "source": "MockFinancialNews"
-        },
-        {
-            "id": "news_2",
-            "title": f"Refineries prepare for {event_type or 'weather'}.",
-            "content": "Companies are shutting down facilities. Uncertainty is high.",
-            "source": "MockEnergyDaily"
-        }
-    ]
+from app.services.news_service import news_service
 
 
 def node_sentiment_agent(state: AnalysisState) -> AnalysisState:
@@ -80,7 +61,7 @@ def node_sentiment_agent(state: AnalysisState) -> AnalysisState:
         )
         return state
 
-    news = get_mock_news(query, event_type)
+    news = news_service.get_real_news(query, event_type)
     
     if not news:
         state.sentiment = {
@@ -120,7 +101,7 @@ def node_sentiment_agent(state: AnalysisState) -> AnalysisState:
                 "article_count": len(news),
                 "articles": news,
                 "model": "ProsusAI/finbert",
-                "status": "fallback", # Using mock data
+                "status": "live", # Using real GDELT news
             }
             
             # Generate Evidence
@@ -128,8 +109,8 @@ def node_sentiment_agent(state: AnalysisState) -> AnalysisState:
                 ev = EvidenceItem(
                     id=f"sent_{article['id']}",
                     type="sentiment",
-                    data_status="fallback",
-                    source=article['source'],
+                    data_status="live",
+                    source=article.get('source', 'GDELT'),
                     timestamp=datetime.now(timezone.utc),
                     description=f"Analyzed article: {article['title']}",
                     data_reference={"sentiment": results[idx]},
@@ -156,7 +137,7 @@ def node_sentiment_agent(state: AnalysisState) -> AnalysisState:
             latency_ms=round((time.time() - start_time) * 1000, 2),
             inputs_used=["query"],
             outputs_generated=["sentiment"],
-            sources=["MockFinancialNews", "ProsusAI/finbert"],
+            sources=["GDELT", "ProsusAI/finbert"],
             cache_hit=False
         )
     )

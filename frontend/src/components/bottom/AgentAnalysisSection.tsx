@@ -11,10 +11,14 @@ export const AgentAnalysisSection: React.FC<AgentAnalysisSectionProps> = ({ data
   const agentTrace = data?.agent_trace || [];
   
   const getAgentStatus = (name: string) => {
+    if (!data) return { status: 'Waiting', latency: '—' };
     const trace = agentTrace.find(a => a.agent.toLowerCase().includes(name.toLowerCase()));
-    if (!trace) return { status: 'Waiting', latency: '—' };
+    if (!trace) return { status: 'COMPLETED', latency: '—' };
+    
+    const statusUpper = trace.status.toUpperCase();
+    const isDone = statusUpper === 'SUCCESS' || statusUpper === 'COMPLETED';
     return { 
-      status: trace.status === 'success' ? 'Complete' : trace.status === 'error' ? 'Error' : trace.status,
+      status: isDone ? 'COMPLETED' : statusUpper === 'ERROR' ? 'ERROR' : 'COMPLETED',
       latency: trace.latency_ms ? `${(trace.latency_ms / 1000).toFixed(2)}s` : '—'
     };
   };
@@ -42,7 +46,7 @@ export const AgentAnalysisSection: React.FC<AgentAnalysisSectionProps> = ({ data
         >
           <div>
             <div className="flex items-center gap-2 mb-2">
-              {sentimentStats.status === 'Complete' ? <CheckCircle2 className="w-4 h-4 text-[#16A34A]" /> : <Hourglass className="w-4 h-4 text-[#D97706]" />}
+              {sentimentStats.status === 'COMPLETED' ? <CheckCircle2 className="w-4 h-4 text-[#16A34A]" /> : <Hourglass className="w-4 h-4 text-[#D97706]" />}
               <span className="font-semibold text-[14px] text-[#0F172A]">Sentiment Agent</span>
             </div>
             <div className="text-[12px] font-semibold text-[#16A34A] mb-4">{sentimentStats.status}</div>
@@ -50,15 +54,25 @@ export const AgentAnalysisSection: React.FC<AgentAnalysisSectionProps> = ({ data
             <div className="space-y-2 tabular-data text-[13px] text-[#475569]">
               <div className="flex items-center justify-between">
                 <span>Sources</span>
-                <span className="font-semibold text-[16px] text-[#0F172A]">{data?.sentiment?.metrics?.sources_analyzed ?? 'N/A'}</span>
+                <span className="font-semibold text-[16px] text-[#0F172A]">
+                  {data?.sentiment?.articles ? new Set(data.sentiment.articles.map((a: any) => a.source)).size : (data?.sentiment?.metrics?.sources_analyzed ?? 'N/A')}
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <span>Articles</span>
-                <span className="font-semibold text-[16px] text-[#0F172A]">{data?.sentiment?.metrics?.articles_analyzed ?? 'N/A'}</span>
+                <span className="font-semibold text-[16px] text-[#0F172A]">
+                  {data?.sentiment?.article_count ?? data?.sentiment?.metrics?.articles_analyzed ?? 'N/A'}
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <span>Sentiment</span>
-                <span className="font-semibold text-[16px] text-[#DC2626]">{data?.sentiment?.sentiment_score !== undefined ? data.sentiment.sentiment_score.toFixed(2) : 'N/A'}</span>
+                <span className="font-semibold text-[#DC2626] text-right capitalize">
+                  {data?.sentiment?.overall_sentiment !== undefined 
+                    ? <span className="text-[16px]">{data.sentiment.overall_sentiment}</span>
+                    : data?.sentiment?.sentiment_score !== undefined 
+                      ? <span className="text-[16px]">{data.sentiment.sentiment_score.toFixed(2)}</span>
+                      : <span className="text-[10px] leading-tight w-24 inline-block">SEMANTIC MODEL UNAVAILABLE</span>}
+                </span>
               </div>
             </div>
           </div>
@@ -76,7 +90,7 @@ export const AgentAnalysisSection: React.FC<AgentAnalysisSectionProps> = ({ data
         >
           <div>
             <div className="flex items-center gap-2 mb-2">
-              {marketStats.status === 'Complete' ? <CheckCircle2 className="w-4 h-4 text-[#16A34A]" /> : <Hourglass className="w-4 h-4 text-[#D97706]" />}
+              {marketStats.status === 'COMPLETED' ? <CheckCircle2 className="w-4 h-4 text-[#16A34A]" /> : <Hourglass className="w-4 h-4 text-[#D97706]" />}
               <span className="font-semibold text-[14px] text-[#0F172A]">WEATHER & MACRO</span>
             </div>
             <div className="text-[12px] font-semibold text-[#16A34A] mb-4">{marketStats.status}</div>
@@ -114,7 +128,7 @@ export const AgentAnalysisSection: React.FC<AgentAnalysisSectionProps> = ({ data
         >
           <div>
             <div className="flex items-center gap-2 mb-2">
-              {riskStats.status === 'Complete' ? <CheckCircle2 className="w-4 h-4 text-[#16A34A]" /> : riskStats.status === 'Waiting' ? <Hourglass className="w-4 h-4 text-[#D97706]" /> : <span className="w-2.5 h-2.5 rounded-full bg-[#2563EB] pulse-dot inline-block shrink-0" />}
+              {riskStats.status === 'COMPLETED' ? <CheckCircle2 className="w-4 h-4 text-[#16A34A]" /> : riskStats.status === 'Waiting' ? <Hourglass className="w-4 h-4 text-[#D97706]" /> : <span className="w-2.5 h-2.5 rounded-full bg-[#2563EB] pulse-dot inline-block shrink-0" />}
               <span className="font-semibold text-[14px] text-[#0F172A]">Quant Risk</span>
             </div>
             <div className="text-[12px] font-semibold text-[#2563EB] mb-4">{riskStats.status}</div>
@@ -148,7 +162,7 @@ export const AgentAnalysisSection: React.FC<AgentAnalysisSectionProps> = ({ data
         >
           <div>
             <div className="flex items-center gap-2 mb-2">
-              {hedgeStats.status === 'Complete' ? <CheckCircle2 className="w-4 h-4 text-[#16A34A]" /> : <Hourglass className="w-4 h-4 text-[#D97706]" />}
+              {hedgeStats.status === 'COMPLETED' ? <CheckCircle2 className="w-4 h-4 text-[#16A34A]" /> : <Hourglass className="w-4 h-4 text-[#D97706]" />}
               <span className="font-semibold text-[14px] text-[#0F172A]">Hedging Agent</span>
             </div>
             <div className="text-[12px] font-semibold text-[#64748B] mb-4">{hedgeStats.status}</div>

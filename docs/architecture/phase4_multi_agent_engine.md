@@ -38,4 +38,4 @@ graph TD
 All agents return explicit "status" fields (`missing`, `fallback`, `unavailable`). No data is fabricated or imputed. For example, a missing weather API simply returns `status: unavailable`, allowing downstream agents (like Hedging) to degrade gracefully or skip depending on prerequisites.
 
 ## 5. Audit Trail & Evidence Model
-The state enforces a rigorous `evidence` array and an `agent_trace` array. Everything generated pushes to these arrays, ensuring Phase 5 synthesis (Gemini) can cite sources. The entire run and simulated recommendations are saved to SQLite via `AnalysisRun` and `Recommendation` tables.
+The state enforces a rigorous `evidence` array and an `agent_trace` array. Everything generated pushes to these arrays, ensuring Phase 5 synthesis (Grok) can cite sources. The entire run and simulated recommendations are saved to SQLite via `AnalysisRun` and `Recommendation` tables.

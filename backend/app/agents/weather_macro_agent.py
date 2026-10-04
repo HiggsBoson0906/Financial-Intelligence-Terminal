@@ -11,22 +11,8 @@ import json
 
 from app.schemas.orchestration import AnalysisState, AgentTrace, EvidenceItem
 from app.services.fred_service import fred_service
+from app.services.weather_service import weather_service
 from app.services.redis_service import redis_client
-
-
-def get_mock_weather(region: str, event_type: str, category: int = None):
-    if not region and not event_type:
-        return {"status": "missing"}
-        
-    cat = category if category else 3
-    return {
-        "max_wind_kt": 110.0 if cat == 3 else 130.0,
-        "min_pressure_mb": 950.0 if cat == 3 else 930.0,
-        "category": cat,
-        "severity": f"Category {cat}",
-        "region": region or "Unknown",
-        "status": "fallback"
-    }
 
 
 def node_weather_macro_agent(state: AnalysisState) -> AnalysisState:
@@ -57,10 +43,8 @@ def node_weather_macro_agent(state: AnalysisState) -> AnalysisState:
 
     # 2. Weather
     try:
-        weather_data = get_mock_weather(
-            state.user_intent.get("region"), 
-            state.user_intent.get("event_type"),
-            state.user_intent.get("category")
+        weather_data = weather_service.get_weather_for_region(
+            state.user_intent.get("region")
         )
     except Exception as e:
         state.warnings.append(f"Weather fetch failed: {e}")
@@ -79,9 +63,9 @@ def node_weather_macro_agent(state: AnalysisState) -> AnalysisState:
                 id=f"weather_{int(time.time())}",
                 type="weather",
                 data_status=weather_data.get("status", "fallback"),
-                source="MockWeatherProvider",
+                source="NWS",
                 timestamp=datetime.now(timezone.utc),
-                description=f"Current weather condition for {weather_data.get('region')}",
+                description=f"Current weather condition for {weather_data.get('location', {}).get('name', 'Region')}",
                 data_reference=weather_data,
                 status=weather_data.get("status")
             )
@@ -111,7 +95,7 @@ def node_weather_macro_agent(state: AnalysisState) -> AnalysisState:
             latency_ms=round((time.time() - start_time) * 1000, 2),
             inputs_used=["region", "event_type"],
             outputs_generated=["weather", "macro"],
-            sources=["FRED", "MockWeatherProvider"]
+            sources=["FRED", "NWS"]
         )
     )
     

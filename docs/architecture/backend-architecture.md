@@ -27,9 +27,9 @@ The system is designed around a multi-agent architecture orchestrated by LangGra
 *Note: RAG is a shared capability accessed by these agents, not a standalone agent. There is also no distinct "Market Analysis Agent", as this responsibility is distributed.*
 
 ## Financial Computation Rule
-**CRITICAL:** Gemini must not be treated as the source of truth for numerical financial calculations.
+**CRITICAL:** Grok must not be treated as the source of truth for numerical financial calculations.
 
-- **Gemini (LLMs) handles:**
+- **Grok (LLMs) handles:**
   - Reasoning
   - Synthesis
   - Explanation

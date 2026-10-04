@@ -34,9 +34,12 @@ REACTION_COLS = [
 ]
 
 
+from pathlib import Path
+DATA_DIR = Path(__file__).resolve().parent.parent.parent.parent / "data" / "processed"
+
 @lru_cache(maxsize=1)
 def _load_impact_df() -> pd.DataFrame:
-    df = pd.read_csv("data/processed/event_impact_dataset.csv")
+    df = pd.read_csv(DATA_DIR / "event_impact_dataset.csv")
     return df
 
 

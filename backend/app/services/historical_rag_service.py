@@ -61,11 +61,15 @@ _macro_df: Optional[pd.DataFrame] = None
 _events_df: Optional[pd.DataFrame] = None
 
 
+from pathlib import Path
+
+DATA_DIR = Path(__file__).resolve().parent.parent.parent.parent / "data" / "processed"
+
 def _get_macro_df() -> pd.DataFrame:
     global _macro_df
     if _macro_df is None:
         _macro_df = pd.read_csv(
-            "data/processed/normalized_macro.csv",
+            DATA_DIR / "normalized_macro.csv",
             parse_dates=["date"],
         )
     return _macro_df
@@ -75,7 +79,7 @@ def _get_events_df() -> pd.DataFrame:
     global _events_df
     if _events_df is None:
         _events_df = pd.read_csv(
-            "data/processed/historical_events.csv",
+            DATA_DIR / "historical_events.csv",
             parse_dates=["start_date", "end_date"],
         )
     return _events_df
