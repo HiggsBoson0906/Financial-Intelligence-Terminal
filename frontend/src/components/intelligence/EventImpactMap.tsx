@@ -7,6 +7,9 @@ import { MarketView } from './MarketView';
 import { RiskView } from './RiskView';
 
 import { QueryResponse } from '../../types/api';
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
+
+maplibregl.config.WORKER_URL = workerUrl;
 
 interface EventImpactMapProps {
   data?: QueryResponse | null;

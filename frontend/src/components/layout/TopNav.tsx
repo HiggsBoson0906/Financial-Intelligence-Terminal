@@ -21,7 +21,6 @@ export const TopNav: React.FC<TopNavProps> = ({
     { id: 'news', label: 'NEWS' },
     { id: 'weather', label: 'WEATHER' },
     { id: 'portfolio', label: 'PORTFOLIO' },
-    { id: 'evidence', label: 'EVIDENCE' },
   ];
 
   // Handle scroll effect
@@ -58,14 +57,7 @@ export const TopNav: React.FC<TopNavProps> = ({
               <button
                 key={tab.id}
                 onClick={() => {
-                  if (tab.id === 'evidence') {
-                    setActivePage('home');
-                    setTimeout(() => {
-                      document.getElementById('sources-and-data')?.scrollIntoView({ behavior: 'smooth' });
-                    }, 100);
-                  } else {
-                    setActivePage(tab.id as ActivePage);
-                  }
+                  setActivePage(tab.id as ActivePage);
                 }}
                 className={`relative px-4 py-2 text-[12px] font-bold tracking-widest transition-all duration-200 rounded-lg overflow-hidden ${
                   isActive
@@ -107,14 +99,7 @@ export const TopNav: React.FC<TopNavProps> = ({
               <button
                 key={tab.id}
                 onClick={() => {
-                  if (tab.id === 'evidence') {
-                    setActivePage('home');
-                    setTimeout(() => {
-                      document.getElementById('sources-and-data')?.scrollIntoView({ behavior: 'smooth' });
-                    }, 100);
-                  } else {
-                    setActivePage(tab.id as ActivePage);
-                  }
+                  setActivePage(tab.id as ActivePage);
                   setIsMobileMenuOpen(false);
                 }}
                 className={`px-4 py-3 text-[13px] font-bold tracking-widest text-left rounded-lg transition-colors ${

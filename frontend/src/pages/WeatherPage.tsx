@@ -3,6 +3,9 @@ import { RefreshCw, CloudLightning, AlertTriangle, Info, Map as MapIcon, ShieldA
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { API_BASE_URL } from '../services/api';
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
+
+maplibregl.config.WORKER_URL = workerUrl;
 
 const maptilerKey = import.meta.env.VITE_MAPTILER_API_KEY;
 const MAP_STYLE = maptilerKey 

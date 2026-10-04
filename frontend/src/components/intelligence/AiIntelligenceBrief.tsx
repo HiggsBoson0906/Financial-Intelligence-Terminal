@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Sparkles, Activity, ChevronRight, CornerDownRight } from 'lucide-react';
+import { Sparkles, Activity, CornerDownRight } from 'lucide-react';
 import { QueryResponse } from '../../types/api';
 import { API_BASE_URL } from '../../services/api';
 
@@ -250,26 +250,7 @@ export const AiIntelligenceBrief: React.FC<AiIntelligenceBriefProps> = ({ data, 
                 </table>
               </div>
 
-              <div className="mt-6">
-                <h3 className="text-[12px] font-bold text-[#64748B] uppercase tracking-widest mb-3">
-                  EVIDENCE
-                </h3>
-                <div className="flex flex-col gap-2">
-                  <div className="border border-[#E2E8F0] rounded p-3 flex flex-col gap-1 w-full bg-white text-left text-[14px] font-['Times_New_Roman',_Times,_serif] text-[#0F172A]">
-                    <div className="flex justify-between items-start">
-                      <span className="font-bold text-[#0F172A]">Source Analysis Overview</span>
-                      <button 
-                        onClick={onViewEvidence}
-                        className="text-[11px] font-bold font-sans tracking-widest text-[#2563EB] uppercase flex items-center gap-1 group whitespace-nowrap ml-4"
-                      >
-                        VIEW SOURCES
-                        <ChevronRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
-                      </button>
-                    </div>
-                    <span className="text-[13px] text-[#475569]">Synthesized from available APIs and data providers.</span>
-                  </div>
-                </div>
-              </div>
+
             </div>
           </div>
           

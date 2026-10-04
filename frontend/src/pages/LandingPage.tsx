@@ -415,7 +415,7 @@ addEventListener('ask:done',()=>{running=false;fs.classList.remove('run');fld.cl
 <div class="cur" id="cur" aria-hidden="true"></div>
 <nav id="nav" aria-label="Primary">
   <a href="#hero" class="logo">PillerStreet<small>MARKET INTELLIGENCE PLATFORM</small></a>
-  <div class="links"><a href="#signals">PLATFORM</a><a href="#agents">AGENTS</a><a href="#ask">INTELLIGENCE</a><a href="#lab">RISK</a><a href="#evidence">EVIDENCE</a></div>
+  <div class="links"><a href="#signals">PLATFORM</a><a href="#agents">AGENTS</a><a href="#ask">INTELLIGENCE</a><a href="#lab">RISK</a></div>
   <a class="btn p mag" href="/terminal">LAUNCH PILLERSTREET</a>
 </nav>
 
@@ -529,7 +529,7 @@ addEventListener('ask:done',()=>{running=false;fs.classList.remove('run');fld.cl
 
 <footer>
   <div><span class="logo" style="font-size:15px">PillerStreet</span><br>MARKET INTELLIGENCE PLATFORM</div>
-  <nav aria-label="Footer"><a href="#signals">Platform</a><a href="#ask">Intelligence</a><a href="#agents">Agents</a><a href="#lab">Risk</a><a href="#evidence">Evidence</a><a href="https://github.com/">GitHub</a></nav>
+  <nav aria-label="Footer"><a href="#signals">Platform</a><a href="#ask">Intelligence</a><a href="#agents">Agents</a><a href="#lab">Risk</a><a href="https://github.com/">GitHub</a></nav>
   <div>BUILT FOR CODE UTSAVA X.0</div>
 </footer>
 
