@@ -71,16 +71,16 @@ export const AnalyticalChain: React.FC<AnalyticalChainProps> = ({
   const peakPoint = points.reduce((prev, curr) => (curr.varValue > prev.varValue ? curr : prev), points[0]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-[#F1F5F9] items-stretch w-full overflow-hidden">
+    <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-[#F1F5F9] dark:divide-[#1F2937] items-stretch w-full overflow-hidden">
       
       {/* Node 1: PORTFOLIO */}
       <div
         onClick={() => onSelectNode?.('PORTFOLIO')}
-        className="px-4 py-3 hover:bg-[#F8FAFC] transition-colors cursor-pointer group flex flex-col justify-between"
+        className="px-4 py-3 hover:bg-[#F8FAFC] dark:hover:bg-[#161F30] transition-colors cursor-pointer group flex flex-col justify-between"
       >
-        <div className="text-[16px] font-semibold text-[#0F172A] mb-1.5 flex items-center justify-between">
+        <div className="text-[16px] font-semibold text-[#0F172A] dark:text-[#F8FAFC] mb-1.5 flex items-center justify-between">
           <span>Portfolio</span>
-          <span className="text-[11px] font-medium text-[#64748B]">Allocation</span>
+          <span className="text-[11px] font-medium text-[#64748B] dark:text-[#94A3B8]">Allocation</span>
         </div>
         
         {/* Horizontal composition: ~38% Donut on Left, ~62% Info on Right */}
@@ -90,7 +90,7 @@ export const AnalyticalChain: React.FC<AnalyticalChainProps> = ({
             <div className="relative w-16 h-16 flex items-center justify-center">
               <svg width="64" height="64" viewBox="0 0 36 36" className="shrink-0">
                 {/* Background circle */}
-                <circle cx="18" cy="18" r="14" fill="none" stroke="#F1F5F9" strokeWidth="4.5" />
+                <circle cx="18" cy="18" r="14" fill="none" stroke="#F1F5F9" className="stroke-[#F1F5F9] dark:stroke-[#1E293B]" strokeWidth="4.5" />
                 {/* Segments rotated from top (-90deg) */}
                 <g transform="rotate(-90 18 18)">
                   {/* Energy 43% */}
@@ -145,19 +145,19 @@ export const AnalyticalChain: React.FC<AnalyticalChainProps> = ({
               </svg>
               {/* Center Donut Label */}
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-[12px] font-bold text-[#0F172A] leading-none tabular-nums">{energyExposure}%</span>
+                <span className="text-[12px] font-bold text-[#0F172A] dark:text-[#F8FAFC] leading-none tabular-nums">{energyExposure}%</span>
               </div>
             </div>
           </div>
 
           {/* Right: Portfolio breakdown */}
           <div className="w-[62%] pl-3 min-w-0 flex flex-col justify-center">
-            <div className="flex items-baseline justify-between mb-1 pb-1 border-b border-[#F1F5F9]">
+            <div className="flex items-baseline justify-between mb-1 pb-1 border-b border-[#F1F5F9] dark:border-[#1F2937]">
               <div>
-                <span className="text-[13px] font-semibold text-[#0F172A] leading-tight block">Energy</span>
-                <span className="text-[11px] text-[#64748B] font-medium leading-none block">
+                <span className="text-[13px] font-semibold text-[#0F172A] dark:text-[#F8FAFC] leading-tight block">Energy</span>
+                <span className="text-[11px] text-[#64748B] dark:text-[#94A3B8] font-medium leading-none block">
                   {data?.portfolio_context?.type === 'synthetic' ? (
-                    <span className="text-[#D97706] font-bold uppercase tracking-wider">Synthetic Demo Portfolio</span>
+                    <span className="text-[#D97706] dark:text-amber-400 font-bold uppercase tracking-wider">Synthetic Demo Portfolio</span>
                   ) : (
                     'Your Portfolio'
                   )}
@@ -166,27 +166,27 @@ export const AnalyticalChain: React.FC<AnalyticalChainProps> = ({
               <span className="text-[18px] font-bold text-[#F43F5E] tabular-nums leading-tight">{energyExposure}%</span>
             </div>
 
-            <div className="space-y-0.5 text-[12px] font-medium text-[#475569]">
+            <div className="space-y-0.5 text-[12px] font-medium text-[#475569] dark:text-[#94A3B8]">
               <div className="flex justify-between items-center">
                 <span className="flex items-center truncate">
                   <span className="w-1.5 h-1.5 rounded-sm bg-[#F43F5E] mr-1.5 shrink-0" />
                   Energy
                 </span>
-                <span className="font-semibold text-[#0F172A] tabular-nums">{energyExposure !== 'N/A' ? energyExposure : '0'}%</span>
+                <span className="font-semibold text-[#0F172A] dark:text-[#F8FAFC] tabular-nums">{energyExposure !== 'N/A' ? energyExposure : '0'}%</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="flex items-center truncate">
                   <span className="w-1.5 h-1.5 rounded-sm bg-[#3B82F6] mr-1.5 shrink-0" />
                   Tech
                 </span>
-                <span className="font-semibold text-[#0F172A] tabular-nums">0%</span>
+                <span className="font-semibold text-[#0F172A] dark:text-[#F8FAFC] tabular-nums">0%</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="flex items-center truncate">
                   <span className="w-1.5 h-1.5 rounded-sm bg-[#F59E0B] mr-1.5 shrink-0" />
                   Finance
                 </span>
-                <span className="font-semibold text-[#0F172A] tabular-nums">0%</span>
+                <span className="font-semibold text-[#0F172A] dark:text-[#F8FAFC] tabular-nums">0%</span>
               </div>
             </div>
           </div>
@@ -196,11 +196,11 @@ export const AnalyticalChain: React.FC<AnalyticalChainProps> = ({
       {/* Node 2: QUANT RISK */}
       <div
         onClick={() => onSelectNode?.('RISK')}
-        className="px-4 py-3 hover:bg-[#F8FAFC] transition-colors cursor-pointer group flex flex-col justify-between"
+        className="px-4 py-3 hover:bg-[#F8FAFC] dark:hover:bg-[#161F30] transition-colors cursor-pointer group flex flex-col justify-between"
       >
         <div className="flex items-center justify-between mb-1.5">
-          <div className="text-[16px] font-semibold text-[#0F172A]">Quant Risk</div>
-          <span className="text-[10px] font-semibold text-[#D97706] bg-[#FEF3C7] px-2 py-0.5 rounded uppercase tracking-wider">
+          <div className="text-[16px] font-semibold text-[#0F172A] dark:text-[#F8FAFC]">Quant Risk</div>
+          <span className="text-[10px] font-semibold text-[#D97706] dark:text-amber-400 bg-[#FEF3C7] dark:bg-amber-950/40 px-2 py-0.5 rounded uppercase tracking-wider">
             {data?.data_quality?.overall_status === 'good' ? 'LIVE' : (data?.data_quality?.overall_status || 'MODEL').toUpperCase()}
           </span>
         </div>
@@ -210,18 +210,18 @@ export const AnalyticalChain: React.FC<AnalyticalChainProps> = ({
           {/* Left Column: Metrics */}
           <div className="space-y-1.5 min-w-0 col-span-2">
             <div>
-              <span className="text-[12px] text-[#64748B] font-medium block leading-none mb-0.5">VaR (95%)</span>
+              <span className="text-[12px] text-[#64748B] dark:text-[#94A3B8] font-medium block leading-none mb-0.5">VaR (95%)</span>
               <div className="flex items-baseline gap-1.5">
-                <span className="tabular-nums font-bold text-[18px] text-[#0F172A] leading-tight">${riskVar.toFixed(0)}K</span>
-                <span className="text-[12px] font-semibold text-[#DC2626] tabular-nums">+11.4%</span>
+                <span className="tabular-nums font-bold text-[18px] text-[#0F172A] dark:text-[#F8FAFC] leading-tight">${riskVar.toFixed(0)}K</span>
+                <span className="text-[12px] font-semibold text-[#DC2626] dark:text-red-400 tabular-nums">+11.4%</span>
               </div>
             </div>
 
             <div>
-              <span className="text-[12px] text-[#64748B] font-medium block leading-none mb-0.5">Expected Shortfall</span>
+              <span className="text-[12px] text-[#64748B] dark:text-[#94A3B8] font-medium block leading-none mb-0.5">Expected Shortfall</span>
               <div className="flex items-baseline gap-1.5">
-                <span className="tabular-nums font-bold text-[18px] text-[#0F172A] leading-tight">${expectedShortfall.toFixed(0)}K</span>
-                <span className="text-[12px] font-semibold text-[#DC2626] tabular-nums">+18.7%</span>
+                <span className="tabular-nums font-bold text-[18px] text-[#0F172A] dark:text-[#F8FAFC] leading-tight">${expectedShortfall.toFixed(0)}K</span>
+                <span className="text-[12px] font-semibold text-[#DC2626] dark:text-red-400 tabular-nums">+18.7%</span>
               </div>
             </div>
           </div>
@@ -232,11 +232,11 @@ export const AnalyticalChain: React.FC<AnalyticalChainProps> = ({
       <div
         id="strategy"
         onClick={() => onSelectNode?.('STRATEGY')}
-        className="px-4 py-3 hover:bg-[#F8FAFC] transition-colors cursor-pointer group flex flex-col justify-between"
+        className="px-4 py-3 hover:bg-[#F8FAFC] dark:hover:bg-[#161F30] transition-colors cursor-pointer group flex flex-col justify-between"
       >
         <div className="flex items-center justify-between mb-1.5">
-          <div className="text-[16px] font-semibold text-[#0F172A]">Strategy</div>
-          <span className="text-[10px] font-semibold text-[#16A34A] bg-[#DCFCE7] px-2 py-0.5 rounded uppercase tracking-wider">
+          <div className="text-[16px] font-semibold text-[#0F172A] dark:text-[#F8FAFC]">Strategy</div>
+          <span className="text-[10px] font-semibold text-[#16A34A] dark:text-green-400 bg-[#DCFCE7] dark:bg-green-950/40 px-2 py-0.5 rounded uppercase tracking-wider">
             Simulation
           </span>
         </div>
@@ -245,27 +245,27 @@ export const AnalyticalChain: React.FC<AnalyticalChainProps> = ({
         <div className="grid grid-cols-2 gap-2.5 items-center my-auto">
           {/* Left Column: Metric */}
           <div className="min-w-0">
-            <div className="text-[12px] text-[#64748B] font-medium leading-none mb-1">
+            <div className="text-[12px] text-[#64748B] dark:text-[#94A3B8] font-medium leading-none mb-1">
               Simulated Hedge
             </div>
-            <div className="tabular-nums font-bold text-[20px] text-[#16A34A] leading-tight mb-0.5">
+            <div className="tabular-nums font-bold text-[20px] text-[#16A34A] dark:text-green-400 leading-tight mb-0.5">
               {simulatedHedge}%
             </div>
-            <div className="text-[11px] text-[#64748B] leading-tight">
+            <div className="text-[11px] text-[#64748B] dark:text-[#94A3B8] leading-tight">
               Risk reduction vs unhedged
             </div>
           </div>
 
           {/* Right Column: Hedge Effect Curve */}
-          <div className="flex flex-col justify-center bg-white border border-[#E2E8F0]/70 rounded p-1.5">
-            <div className="flex items-center justify-between text-[11px] font-semibold text-[#64748B] uppercase tracking-wider mb-0.5">
+          <div className="flex flex-col justify-center bg-white dark:bg-[#161F30] border border-[#E2E8F0]/70 dark:border-[#1F2937] rounded p-1.5">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider mb-0.5">
               <span>Hedge Effect</span>
-              <span className="text-[10px] text-[#16A34A] font-medium">Simulation</span>
+              <span className="text-[10px] text-[#16A34A] dark:text-green-400 font-medium">Simulation</span>
             </div>
             <div className="w-full h-[46px]">
               <svg viewBox="0 0 140 48" className="w-full h-full overflow-visible">
                 {/* Unhedged baseline */}
-                <line x1="8" y1="12" x2="132" y2="12" stroke="#CBD5E1" strokeWidth="1" strokeDasharray="2 2" />
+                <line x1="8" y1="12" x2="132" y2="12" stroke="#CBD5E1" className="stroke-slate-300 dark:stroke-slate-700" strokeWidth="1" strokeDasharray="2 2" />
                 <text x="8" y="9" fontSize="8.5" fill="#94A3B8" fontWeight="600">Base Risk</text>
                 
                 {/* Risk reduction trajectory */}

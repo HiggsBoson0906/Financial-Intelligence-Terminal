@@ -120,9 +120,9 @@ export const GlobalMarketTicker: React.FC<GlobalMarketTickerProps> = ({
                 setSelectedIndex(idx);
                 onSelectTicker?.(t.symbol);
               }}
-              className={`relative overflow-hidden bg-white border rounded-xl shadow-sm transition-all duration-500 cursor-pointer group flex-shrink-0
-                ${t.isPositive ? 'border-green-100' : 'border-red-100'}
-                ${isSelected ? 'hover:border-blue-300 ring-2 ring-blue-500/20 shadow-md' : 'hover:border-slate-300'}
+              className={`relative overflow-hidden bg-white dark:bg-slate-900 border rounded-xl shadow-sm transition-all duration-500 cursor-pointer group flex-shrink-0
+                ${t.isPositive ? 'border-green-100 dark:border-emerald-950/60' : 'border-red-100 dark:border-red-950/60'}
+                ${isSelected ? 'hover:border-blue-300 dark:hover:border-blue-500 ring-2 ring-blue-500/20 shadow-md' : 'hover:border-slate-300 dark:hover:border-slate-700'}
               `}
               style={{
                 transform: `translateY(${translateY}px) scale(${scale})`,
@@ -133,9 +133,9 @@ export const GlobalMarketTicker: React.FC<GlobalMarketTickerProps> = ({
               }}
             >
               {/* Subtle Grid Background */}
-              <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)', backgroundSize: '10px 10px' }} />
+              <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)', backgroundSize: '10px 10px' }} />
               
-              <div className={`relative z-10 flex items-center justify-between text-[#64748B] font-bold tracking-widest mb-2 uppercase transition-all duration-500 ${isSelected ? 'text-[14px]' : 'text-[12px]'}`}>
+              <div className={`relative z-10 flex items-center justify-between text-[#64748B] dark:text-slate-400 font-bold tracking-widest mb-2 uppercase transition-all duration-500 ${isSelected ? 'text-[14px]' : 'text-[12px]'}`}>
                 <div className="flex items-center gap-1.5">
                    <span className={`rounded-full transition-all duration-500 ${isSelected ? 'w-2 h-2 animate-pulse' : 'w-1.5 h-1.5'} ${t.isPositive ? 'bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]' : 'bg-red-500 shadow-[0_0_5px_rgba(239,68,68,0.5)]'}`} />
                    {t.symbol}
@@ -146,13 +146,13 @@ export const GlobalMarketTicker: React.FC<GlobalMarketTickerProps> = ({
                 {renderSparkline(t.sparkline, t.isPositive, isSelected)}
               </div>
 
-              <div className="relative z-10 flex items-baseline justify-between gap-2 mt-2 pt-2 border-t border-slate-100">
-                <span className={`font-mono-tech font-bold text-[#0F172A] tracking-tight transition-all duration-500 ${isSelected ? 'text-[20px]' : 'text-[15px]'}`}>
+              <div className="relative z-10 flex items-baseline justify-between gap-2 mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <span className={`font-mono-tech font-bold text-[#0F172A] dark:text-slate-100 tracking-tight transition-all duration-500 ${isSelected ? 'text-[20px]' : 'text-[15px]'}`}>
                   {t.value}
                 </span>
                 <span
                   className={`font-mono-tech font-bold transition-all duration-500 ${isSelected ? 'text-[14px]' : 'text-[12px]'} ${
-                    t.isPositive ? 'text-green-600' : 'text-red-600'
+                    t.isPositive ? 'text-green-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
                   }`}
                 >
                   {t.change}

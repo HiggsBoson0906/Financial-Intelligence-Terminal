@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { ActivePage } from '../../types';
+import { ThemeToggle } from './ThemeToggle';
 
 interface TopNavProps {
   activePage: ActivePage;
@@ -33,18 +34,18 @@ export const TopNav: React.FC<TopNavProps> = ({
   }, []);
 
   return (
-    <div className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'pt-2 pb-2 backdrop-blur-md bg-white/70 shadow-sm' : 'pt-4 pb-4 bg-transparent'}`}>
-      <div className={`max-w-[1200px] mx-auto bg-white border border-[#E2E8F0] rounded-xl flex items-center justify-between px-6 transition-all duration-300 ${isScrolled ? 'h-14 shadow-md' : 'h-16 shadow-sm'}`}>
+    <div className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'pt-2 pb-2 backdrop-blur-md bg-white/70 dark:bg-slate-900/80 shadow-sm' : 'pt-4 pb-4 bg-transparent'}`}>
+      <div className={`max-w-[1200px] mx-auto bg-white dark:bg-slate-900 border border-[#E2E8F0] dark:border-slate-800 rounded-xl flex items-center justify-between px-6 transition-all duration-300 ${isScrolled ? 'h-14 shadow-md' : 'h-16 shadow-sm'}`}>
         
         {/* Left: Brand */}
         <a href="/" className="flex items-center gap-3 cursor-pointer group">
           {/* Subtle pillar motif */}
           <div className="flex items-end gap-[3px] transition-transform duration-300 group-hover:-translate-y-0.5">
-            <div className="w-1.5 h-3.5 bg-blue-300 rounded-sm"></div>
-            <div className="w-1.5 h-6 bg-blue-900 rounded-sm"></div>
+            <div className="w-1.5 h-3.5 bg-blue-300 dark:bg-blue-400 rounded-sm"></div>
+            <div className="w-1.5 h-6 bg-blue-900 dark:bg-blue-500 rounded-sm"></div>
             <div className="w-1.5 h-4.5 bg-cyan-500 rounded-sm"></div>
           </div>
-          <span className="text-[22px] font-extrabold tracking-tight text-[#0F172A] font-sans">
+          <span className="text-[22px] font-extrabold tracking-tight text-[#0F172A] dark:text-slate-100 font-sans">
             PillerStreet
           </span>
         </a>
@@ -61,29 +62,32 @@ export const TopNav: React.FC<TopNavProps> = ({
                 }}
                 className={`relative px-4 py-2 text-[12px] font-bold tracking-widest transition-all duration-200 rounded-lg overflow-hidden ${
                   isActive
-                    ? 'text-blue-900 bg-blue-50'
-                    : 'text-[#64748B] hover:text-[#0F172A] hover:bg-slate-50'
+                    ? 'text-blue-900 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60'
+                    : 'text-[#64748B] dark:text-slate-400 hover:text-[#0F172A] dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60'
                 }`}
               >
                 {tab.label}
                 {isActive && (
-                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-[3px] bg-blue-600 rounded-t-full" />
+                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-[3px] bg-blue-600 dark:bg-blue-500 rounded-t-full" />
                 )}
               </button>
             );
           })}
         </nav>
 
-        {/* Right: Clock & Mobile Menu Toggle */}
-        <div className="flex items-center gap-4">
-          <div className="hidden sm:flex items-center gap-2 font-mono-tech text-[11px] font-bold text-[#475569] bg-[#F8FAFC] px-3 py-1.5 rounded-md border border-[#F1F5F9] shadow-sm">
+        {/* Right: Theme Toggle & Clock & Mobile Menu Toggle */}
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+
+          <div className="hidden sm:flex items-center gap-2 font-mono-tech text-[11px] font-bold text-[#475569] dark:text-slate-300 bg-[#F8FAFC] dark:bg-slate-800 px-3 py-1.5 rounded-md border border-[#F1F5F9] dark:border-slate-700/60 shadow-sm">
             <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
             {currentTime || '04 OCT 2026 | 05:34 IST'}
           </div>
           
           <button 
-            className="md:hidden p-2 text-[#0F172A]"
+            className="md:hidden p-2 text-[#0F172A] dark:text-slate-100"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle navigation menu"
           >
             {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -92,7 +96,7 @@ export const TopNav: React.FC<TopNavProps> = ({
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden absolute top-full left-4 right-4 mt-2 bg-white border border-[#E2E8F0] rounded-xl shadow-lg p-4 flex flex-col gap-2 animate-in fade-in slide-in-from-top-2">
+        <div className="md:hidden absolute top-full left-4 right-4 mt-2 bg-white dark:bg-slate-900 border border-[#E2E8F0] dark:border-slate-800 rounded-xl shadow-lg p-4 flex flex-col gap-2 animate-in fade-in slide-in-from-top-2">
           {navTabs.map((tab) => {
             const isActive = activePage === tab.id;
             return (
@@ -104,8 +108,8 @@ export const TopNav: React.FC<TopNavProps> = ({
                 }}
                 className={`px-4 py-3 text-[13px] font-bold tracking-widest text-left rounded-lg transition-colors ${
                   isActive
-                    ? 'text-blue-900 bg-blue-50 border-l-4 border-blue-600'
-                    : 'text-[#64748B] hover:bg-slate-50 border-l-4 border-transparent'
+                    ? 'text-blue-900 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 border-l-4 border-blue-600 dark:border-blue-500'
+                    : 'text-[#64748B] dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 border-l-4 border-transparent'
                 }`}
               >
                 {tab.label}

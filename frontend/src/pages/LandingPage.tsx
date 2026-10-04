@@ -1,12 +1,15 @@
 // @ts-nocheck
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import './LandingPage.css';
 import * as THREE from 'three';
 import Lenis from 'lenis';
+import { ThemeToggle } from '../components/layout/ThemeToggle';
 
 export const LandingPage = ({ onLaunch }) => {
   const containerRef = useRef(null);
+  const [toggleMountNode, setToggleMountNode] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
     window.THREE = THREE;
@@ -410,13 +413,21 @@ addEventListener('ask:done',()=>{running=false;fs.classList.remove('run');fld.cl
     };
   }, [onLaunch]);
 
+  useEffect(() => {
+    setToggleMountNode(document.getElementById('landing-theme-toggle'));
+  }, []);
+
   return (
-    <div className="landing-page-root" ref={containerRef} dangerouslySetInnerHTML={{ __html: `
+    <>
+      <div className="landing-page-root" ref={containerRef} dangerouslySetInnerHTML={{ __html: `
 <div class="cur" id="cur" aria-hidden="true"></div>
 <nav id="nav" aria-label="Primary">
   <a href="#hero" class="logo">PillerStreet<small>MARKET INTELLIGENCE PLATFORM</small></a>
   <div class="links"><a href="#signals">PLATFORM</a><a href="#agents">AGENTS</a><a href="#ask">INTELLIGENCE</a><a href="#lab">RISK</a></div>
-  <a class="btn p mag" href="/terminal">LAUNCH PILLERSTREET</a>
+  <div style="display:flex;align-items:center;gap:14px">
+    <div id="landing-theme-toggle"></div>
+    <a class="btn p mag" href="/terminal">LAUNCH PILLERSTREET</a>
+  </div>
 </nav>
 
 <main>
@@ -534,5 +545,7 @@ addEventListener('ask:done',()=>{running=false;fs.classList.remove('run');fld.cl
 </footer>
 
 ` }} />
+      {toggleMountNode && createPortal(<ThemeToggle />, toggleMountNode)}
+    </>
   );
 };

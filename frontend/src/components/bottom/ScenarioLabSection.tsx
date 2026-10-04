@@ -91,19 +91,19 @@ export const ScenarioLabSection: React.FC<ScenarioLabSectionProps> = ({ data }) 
   const hedgeCost = simResult ? Math.round(simResult.hedge_cost / 1000) : 0;
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-[#E2E8F0] p-6 select-none h-full flex flex-col justify-between">
+    <div className="bg-white dark:bg-[#111827] rounded-xl shadow-sm border border-[#E2E8F0] dark:border-[#1F2937] p-6 select-none h-full flex flex-col justify-between">
       {/* Header */}
-      <div className="pb-4 border-b border-[#F1F5F9] mb-6 flex items-center justify-between">
+      <div className="pb-4 border-b border-[#F1F5F9] dark:border-[#1F2937] mb-6 flex items-center justify-between">
         <div>
-          <h2 className="text-[21px] font-bold text-[#0F172A] leading-tight">
+          <h2 className="text-[21px] font-bold text-[#0F172A] dark:text-[#F8FAFC] leading-tight">
             Scenario Lab
           </h2>
-          <p className="text-[12px] text-[#64748B] mt-0.5 font-medium">
+          <p className="text-[12px] text-[#64748B] dark:text-[#94A3B8] mt-0.5 font-medium">
             Simulate portfolio outcomes under different conditions
           </p>
         </div>
         <div className="flex items-center">
-          <span className="text-[10px] font-bold text-[#D97706] bg-[#FEF3C7] px-2 py-1 rounded uppercase tracking-wider">
+          <span className="text-[10px] font-bold text-[#D97706] dark:text-amber-400 bg-[#FEF3C7] dark:bg-amber-950/40 px-2 py-1 rounded uppercase tracking-wider">
             Simulation
           </span>
         </div>
@@ -112,7 +112,7 @@ export const ScenarioLabSection: React.FC<ScenarioLabSectionProps> = ({ data }) 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         {/* Left: Interactive Controls (45%) */}
         <div className="lg:col-span-5 space-y-7">
-          <h3 className="text-[12px] font-bold text-[#64748B] uppercase tracking-wider mb-2">
+          <h3 className="text-[12px] font-bold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider mb-2">
             Scenario Controls
           </h3>
           
@@ -120,8 +120,8 @@ export const ScenarioLabSection: React.FC<ScenarioLabSectionProps> = ({ data }) 
             {/* Slider 1: Hurricane Intensity */}
             <div>
               <div className="flex items-center justify-between text-[12px] mb-2 font-sans">
-                <span className="text-[#0F172A] font-semibold">Event Intensity</span>
-                <span className="font-bold text-[#2563EB]">Level {intensity}</span>
+                <span className="text-[#0F172A] dark:text-[#F8FAFC] font-semibold">Event Intensity</span>
+                <span className="font-bold text-[#2563EB] dark:text-blue-400">Level {intensity}</span>
               </div>
               <input
                 type="range"
@@ -130,9 +130,9 @@ export const ScenarioLabSection: React.FC<ScenarioLabSectionProps> = ({ data }) 
                 step="1"
                 value={intensity}
                 onChange={(e) => setIntensity(Number(e.target.value))}
-                className="w-full accent-[#2563EB] cursor-pointer h-1.5 bg-[#E2E8F0] rounded-lg mb-1"
+                className="w-full accent-[#2563EB] cursor-pointer h-1.5 bg-[#E2E8F0] dark:bg-[#1E293B] rounded-lg mb-1"
               />
-              <div className="flex justify-between text-[10px] text-[#94A3B8] font-sans">
+              <div className="flex justify-between text-[10px] text-[#94A3B8] dark:text-[#64748B] font-sans">
                 <span>Level 1</span>
                 <span>Level 5</span>
               </div>
@@ -141,8 +141,8 @@ export const ScenarioLabSection: React.FC<ScenarioLabSectionProps> = ({ data }) 
             {/* Slider 2: Energy Exposure */}
             <div>
               <div className="flex items-center justify-between text-[12px] mb-2 font-sans">
-                <span className="text-[#0F172A] font-semibold">Energy Exposure</span>
-                <span className="font-bold text-[#2563EB]">{energyExposure}%</span>
+                <span className="text-[#0F172A] dark:text-[#F8FAFC] font-semibold">Energy Exposure</span>
+                <span className="font-bold text-[#2563EB] dark:text-blue-400">{energyExposure}%</span>
               </div>
               <input
                 type="range"
@@ -150,9 +150,9 @@ export const ScenarioLabSection: React.FC<ScenarioLabSectionProps> = ({ data }) 
                 max="100"
                 value={energyExposure}
                 onChange={(e) => setEnergyExposure(Number(e.target.value))}
-                className="w-full accent-[#2563EB] cursor-pointer h-1.5 bg-[#E2E8F0] rounded-lg mb-1"
+                className="w-full accent-[#2563EB] cursor-pointer h-1.5 bg-[#E2E8F0] dark:bg-[#1E293B] rounded-lg mb-1"
               />
-              <div className="flex justify-between text-[10px] text-[#94A3B8] font-sans">
+              <div className="flex justify-between text-[10px] text-[#94A3B8] dark:text-[#64748B] font-sans">
                 <span>0%</span>
                 <span>100%</span>
               </div>
@@ -161,8 +161,8 @@ export const ScenarioLabSection: React.FC<ScenarioLabSectionProps> = ({ data }) 
             {/* Slider 3: Hedge Size */}
             <div>
               <div className="flex items-center justify-between text-[12px] mb-2 font-sans">
-                <span className="text-[#0F172A] font-semibold">Hedge Size</span>
-                <span className="font-bold text-[#16A34A]">{hedgeSize}%</span>
+                <span className="text-[#0F172A] dark:text-[#F8FAFC] font-semibold">Hedge Size</span>
+                <span className="font-bold text-[#16A34A] dark:text-green-400">{hedgeSize}%</span>
               </div>
               <input
                 type="range"
@@ -170,9 +170,9 @@ export const ScenarioLabSection: React.FC<ScenarioLabSectionProps> = ({ data }) 
                 max="50"
                 value={hedgeSize}
                 onChange={(e) => setHedgeSize(Number(e.target.value))}
-                className="w-full accent-[#16A34A] cursor-pointer h-1.5 bg-[#E2E8F0] rounded-lg mb-1"
+                className="w-full accent-[#16A34A] cursor-pointer h-1.5 bg-[#E2E8F0] dark:bg-[#1E293B] rounded-lg mb-1"
               />
-              <div className="flex justify-between text-[10px] text-[#94A3B8] font-sans">
+              <div className="flex justify-between text-[10px] text-[#94A3B8] dark:text-[#64748B] font-sans">
                 <span>0%</span>
                 <span>50%</span>
               </div>
@@ -184,10 +184,10 @@ export const ScenarioLabSection: React.FC<ScenarioLabSectionProps> = ({ data }) 
         <div className="lg:col-span-7 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-[12px] font-bold text-[#64748B] uppercase tracking-wider">
+              <h3 className="text-[12px] font-bold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider">
                 Backend Scenario &rarr; Simulation Result
               </h3>
-              <span className="text-[11px] font-semibold text-[#94A3B8]">
+              <span className="text-[11px] font-semibold text-[#94A3B8] dark:text-[#64748B]">
                 {simState === 'READY' ? 'READY TO SIMULATE' : simState === 'SIMULATING' ? 'SIMULATING...' : simState === 'ERROR' ? 'SCENARIO UNAVAILABLE' : 'SCENARIO → HEDGED'}
               </span>
             </div>
@@ -196,56 +196,56 @@ export const ScenarioLabSection: React.FC<ScenarioLabSectionProps> = ({ data }) 
               <div className="flex flex-col tabular-data text-[14px]">
                 {/* Comparison Rows */}
                 <div className="space-y-1 mb-5">
-                  <div className="flex justify-between items-center py-1.5 border-b border-[#F8FAFC]">
-                    <span className="text-[#475569] font-medium font-sans">Stressed VaR (95%)</span>
+                  <div className="flex justify-between items-center py-1.5 border-b border-[#F8FAFC] dark:border-[#1F2937]">
+                    <span className="text-[#475569] dark:text-[#94A3B8] font-medium font-sans">Stressed VaR (95%)</span>
                     <div className="flex items-center gap-3">
-                      <span className="text-[#DC2626]">${Math.round(stressedVar)}K</span>
-                      <span className="text-[#CBD5E1]">&rarr;</span>
-                      <span className="text-[#16A34A] font-bold">${simVaR}K</span>
+                      <span className="text-[#DC2626] dark:text-red-400">${Math.round(stressedVar)}K</span>
+                      <span className="text-[#CBD5E1] dark:text-[#475569]">&rarr;</span>
+                      <span className="text-[#16A34A] dark:text-green-400 font-bold">${simVaR}K</span>
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center py-1.5 border-b border-[#F8FAFC]">
-                    <span className="text-[#475569] font-medium font-sans">Stressed Shortfall</span>
+                  <div className="flex justify-between items-center py-1.5 border-b border-[#F8FAFC] dark:border-[#1F2937]">
+                    <span className="text-[#475569] dark:text-[#94A3B8] font-medium font-sans">Stressed Shortfall</span>
                     <div className="flex items-center gap-3">
-                      <span className="text-[#DC2626]">${Math.round(stressedEs)}K</span>
-                      <span className="text-[#CBD5E1]">&rarr;</span>
-                      <span className="text-[#16A34A] font-bold">${simES}K</span>
+                      <span className="text-[#DC2626] dark:text-red-400">${Math.round(stressedEs)}K</span>
+                      <span className="text-[#CBD5E1] dark:text-[#475569]">&rarr;</span>
+                      <span className="text-[#16A34A] dark:text-green-400 font-bold">${simES}K</span>
                     </div>
                   </div>
 
                   <div className="flex justify-between items-center py-1.5">
-                    <span className="text-[#475569] font-medium font-sans">Risk Change</span>
+                    <span className="text-[#475569] dark:text-[#94A3B8] font-medium font-sans">Risk Change</span>
                     <div className="flex items-center gap-3">
-                      <span className="text-[#DC2626] font-semibold">+{baseRiskChange.toFixed(1)}%</span>
-                      <span className="text-[#CBD5E1]">&rarr;</span>
-                      <span className="text-[#16A34A] font-bold">+{simRisk}%</span>
+                      <span className="text-[#DC2626] dark:text-red-400 font-semibold">+{baseRiskChange.toFixed(1)}%</span>
+                      <span className="text-[#CBD5E1] dark:text-[#475569]">&rarr;</span>
+                      <span className="text-[#16A34A] dark:text-green-400 font-bold">+{simRisk}%</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Final Simulation Impact */}
-                <div className="bg-[#F8FAFC] border border-[#F1F5F9] rounded-lg p-4 space-y-2 text-[13px]">
-                  <div className="text-[13px] font-semibold text-[#0F172A] mb-3">
+                <div className="bg-[#F8FAFC] dark:bg-[#161F30] border border-[#F1F5F9] dark:border-[#1F2937] rounded-lg p-4 space-y-2 text-[13px]">
+                  <div className="text-[13px] font-semibold text-[#0F172A] dark:text-[#F8FAFC] mb-3">
                     Simulation Impact
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-[#475569] font-medium font-sans">Estimated Risk Reduction</span>
-                    <span className="font-bold text-[#16A34A]">{riskReduction}%</span>
+                    <span className="text-[#475569] dark:text-[#94A3B8] font-medium font-sans">Estimated Risk Reduction</span>
+                    <span className="font-bold text-[#16A34A] dark:text-green-400">{riskReduction}%</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-[#475569] font-medium font-sans">Expected Loss Reduction</span>
-                    <span className="font-bold text-[#16A34A]">-${lossReduction}K</span>
+                    <span className="text-[#475569] dark:text-[#94A3B8] font-medium font-sans">Expected Loss Reduction</span>
+                    <span className="font-bold text-[#16A34A] dark:text-green-400">-${lossReduction}K</span>
                   </div>
-                  <div className="flex justify-between items-center pt-2 mt-2 border-t border-[#E2E8F0]">
-                    <span className="text-[#475569] font-medium font-sans">Hedge Cost</span>
-                    <span className="font-bold text-[#0F172A]">${hedgeCost}K</span>
+                  <div className="flex justify-between items-center pt-2 mt-2 border-t border-[#E2E8F0] dark:border-[#1F2937]">
+                    <span className="text-[#475569] dark:text-[#94A3B8] font-medium font-sans">Hedge Cost</span>
+                    <span className="font-bold text-[#0F172A] dark:text-[#F8FAFC]">${hedgeCost}K</span>
                   </div>
                 </div>
                 
                 {/* Explanation Text */}
-                <div className="mt-4 text-[12px] text-[#64748B]">
-                  <span className="font-bold text-[#475569] uppercase tracking-wide text-[10px] block mb-1">Why this changes</span>
+                <div className="mt-4 text-[12px] text-[#64748B] dark:text-[#94A3B8]">
+                  <span className="font-bold text-[#475569] dark:text-[#CBD5E1] uppercase tracking-wide text-[10px] block mb-1">Why this changes</span>
                   {hedgeSize > 0 
                     ? `Simulated hedge reduces modeled downside exposure under the selected Level ${intensity} scenario.`
                     : `No hedge applied; results represent the unhedged Level ${intensity} scenario.`
@@ -255,7 +255,7 @@ export const ScenarioLabSection: React.FC<ScenarioLabSectionProps> = ({ data }) 
             )}
             
             {simState !== 'SUCCESS' && (
-              <div className="flex-1 flex flex-col items-center justify-center text-center text-[#94A3B8] text-[13px] h-48 bg-[#F8FAFC] border border-[#F1F5F9] rounded-lg mt-2">
+              <div className="flex-1 flex flex-col items-center justify-center text-center text-[#94A3B8] dark:text-[#64748B] text-[13px] h-48 bg-[#F8FAFC] dark:bg-[#161F30] border border-[#F1F5F9] dark:border-[#1F2937] rounded-lg mt-2">
                 {simState === 'SIMULATING' ? (
                   <div className="flex flex-col items-center gap-2">
                     <div className="w-5 h-5 border-2 border-[#2563EB] border-t-transparent rounded-full animate-spin"></div>
@@ -271,17 +271,17 @@ export const ScenarioLabSection: React.FC<ScenarioLabSectionProps> = ({ data }) 
           </div>
           
           {/* Actions */}
-          <div className="flex items-center justify-end gap-3 mt-8 pt-4 border-t border-[#F1F5F9]">
+          <div className="flex items-center justify-end gap-3 mt-8 pt-4 border-t border-[#F1F5F9] dark:border-[#1F2937]">
             <button 
               onClick={resetSimulation}
-              className="px-4 py-2 text-[12px] font-semibold text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC] rounded transition-colors"
+              className="px-4 py-2 text-[12px] font-semibold text-[#64748B] dark:text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-[#F8FAFC] hover:bg-[#F8FAFC] dark:hover:bg-[#1E293B] rounded transition-colors"
             >
               Reset
             </button>
             <button 
               onClick={runSimulation}
               disabled={simState === 'SIMULATING'}
-              className="px-5 py-2 text-[12px] font-semibold text-white bg-[#0F172A] hover:bg-[#1E293B] rounded shadow-sm transition-colors disabled:opacity-50"
+              className="px-5 py-2 text-[12px] font-semibold text-white bg-[#0F172A] dark:bg-blue-600 hover:bg-[#1E293B] dark:hover:bg-blue-500 rounded shadow-sm transition-colors disabled:opacity-50"
             >
               Run Simulation
             </button>

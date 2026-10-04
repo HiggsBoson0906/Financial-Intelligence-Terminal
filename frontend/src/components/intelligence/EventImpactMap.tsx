@@ -7,6 +7,7 @@ import { MarketView } from './MarketView';
 import { RiskView } from './RiskView';
 
 import { QueryResponse } from '../../types/api';
+import { useTheme } from '../../context/ThemeContext';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 
 maplibregl.setWorkerUrl(workerUrl);
@@ -20,9 +21,13 @@ interface EventImpactMapProps {
 }
 
 const maptilerKey = import.meta.env.VITE_MAPTILER_API_KEY;
-const MAP_STYLE = maptilerKey 
+const LIGHT_MAP_STYLE = maptilerKey 
   ? `https://api.maptiler.com/maps/basic-v2-light/style.json?key=${maptilerKey}`
   : 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
+
+const DARK_MAP_STYLE = maptilerKey
+  ? `https://api.maptiler.com/maps/basic-v2-dark/style.json?key=${maptilerKey}`
+  : 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 
 // --- FALLBACK MOCK DATA REMOVED ---
 
@@ -32,6 +37,7 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
   isExpanded = false,
   onToggleExpand,
 }) => {
+  const { theme } = useTheme();
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -133,42 +139,45 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
     if (!mapContainerRef.current || mapRef.current || !eventData) return;
 
     let isActive = true;
+    const activeStyleUrl = theme === 'dark' ? DARK_MAP_STYLE : LIGHT_MAP_STYLE;
 
-    fetch(MAP_STYLE)
+    fetch(activeStyleUrl)
       .then(res => res.json())
       .then(style => {
         if (!isActive) return;
 
         const newStyle = { ...style, layers: [...style.layers] };
-        newStyle.layers = newStyle.layers.map((layer: any) => {
-          const id = layer.id.toLowerCase();
-          const paint = layer.paint ? { ...layer.paint } : {};
-          const newLayer = { ...layer, paint };
+        if (theme !== 'dark') {
+          newStyle.layers = newStyle.layers.map((layer: any) => {
+            const id = layer.id.toLowerCase();
+            const paint = layer.paint ? { ...layer.paint } : {};
+            const newLayer = { ...layer, paint };
 
-          // Land & Background (Sage Green)
-          if (id === 'background' || id.includes('landcover') || id.includes('park') || id.includes('landuse')) {
-            if (layer.type === 'background') paint['background-color'] = '#E4EAE1'; 
-            else if (layer.type === 'fill' && paint['fill-color']) paint['fill-color'] = '#DFE6DB'; 
-          }
-          
-          // Water (Soft Muted Blue)
-          if (id.includes('water') || id.includes('ocean') || id.includes('sea') || id.includes('lake') || id.includes('river')) {
-            if (layer.type === 'fill' && paint['fill-color']) paint['fill-color'] = '#CFE0F2'; 
-          }
-          
-          // Borders & Coastlines (Light Gray)
-          if (layer.type === 'line' && (id.includes('boundary') || id.includes('border') || id.includes('coast'))) {
-            if (typeof paint['line-color'] === 'string' || paint['line-color'] === undefined) paint['line-color'] = '#CBD5E1';
-          }
-          
-          // Geographic Labels (Dark Gray)
-          if (layer.type === 'symbol' && (id.includes('place') || id.includes('watername') || id.includes('country') || id.includes('state') || id.includes('city') || id.includes('label'))) {
-            if (typeof paint['text-color'] === 'string' || paint['text-color'] === undefined) paint['text-color'] = '#475569';
-            if (typeof paint['text-halo-color'] === 'string') paint['text-halo-color'] = 'rgba(255,255,255,0.7)';
-          }
+            // Land & Background (Sage Green)
+            if (id === 'background' || id.includes('landcover') || id.includes('park') || id.includes('landuse')) {
+              if (layer.type === 'background') paint['background-color'] = '#E4EAE1'; 
+              else if (layer.type === 'fill' && paint['fill-color']) paint['fill-color'] = '#DFE6DB'; 
+            }
+            
+            // Water (Soft Muted Blue)
+            if (id.includes('water') || id.includes('ocean') || id.includes('sea') || id.includes('lake') || id.includes('river')) {
+              if (layer.type === 'fill' && paint['fill-color']) paint['fill-color'] = '#CFE0F2'; 
+            }
+            
+            // Borders & Coastlines (Light Gray)
+            if (layer.type === 'line' && (id.includes('boundary') || id.includes('border') || id.includes('coast'))) {
+              if (typeof paint['line-color'] === 'string' || paint['line-color'] === undefined) paint['line-color'] = '#CBD5E1';
+            }
+            
+            // Geographic Labels (Dark Gray)
+            if (layer.type === 'symbol' && (id.includes('place') || id.includes('watername') || id.includes('country') || id.includes('state') || id.includes('city') || id.includes('label'))) {
+              if (typeof paint['text-color'] === 'string' || paint['text-color'] === undefined) paint['text-color'] = '#475569';
+              if (typeof paint['text-halo-color'] === 'string') paint['text-halo-color'] = 'rgba(255,255,255,0.7)';
+            }
 
-          return newLayer;
-        });
+            return newLayer;
+          });
+        }
 
         const map = new maplibregl.Map({
           container: mapContainerRef.current!,
@@ -304,6 +313,12 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
   const handleZoomOut = () => mapRef.current?.zoomOut({ duration: 300 });
   const handleReset = () => mapRef.current?.flyTo({ center: [78.9629, 20.5937], zoom: 4.5, duration: 800 });
 
+  useEffect(() => {
+    if (mapRef.current && isMapLoaded) {
+      mapRef.current.setStyle(theme === 'dark' ? DARK_MAP_STYLE : LIGHT_MAP_STYLE);
+    }
+  }, [theme, isMapLoaded]);
+
   return (
     <div 
       ref={containerRef}
@@ -311,17 +326,17 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
       className="select-none relative w-full h-full flex flex-col flex-1"
     >
       {/* Panel Sub-header */}
-      <div className="flex flex-wrap items-center justify-between pb-4 border-b border-[#F1F5F9] mb-4">
+      <div className="flex flex-wrap items-center justify-between pb-4 border-b border-[#F1F5F9] dark:border-[#1F2937] mb-4">
         <div className="flex items-center gap-6">
-          <h2 className="text-[21px] font-bold text-[#0F172A] flex items-center gap-3">
+          <h2 className="text-[21px] font-bold text-[#0F172A] dark:text-[#F8FAFC] flex items-center gap-3">
             Event Impact Analysis
             {isDemoData && !isLoadingEvent && (
-              <span className="text-[10px] font-bold text-[#D97706] bg-[#FEF3C7] px-2 py-0.5 rounded uppercase tracking-wider">
+              <span className="text-[10px] font-bold text-[#D97706] bg-[#FEF3C7] dark:bg-amber-950/40 dark:text-amber-400 px-2 py-0.5 rounded uppercase tracking-wider">
                 SIMULATION
               </span>
             )}
           </h2>
-          <div className="flex items-center gap-2 p-1 bg-slate-50 border border-slate-200 rounded-lg">
+          <div className="flex items-center gap-2 p-1 bg-slate-50 dark:bg-[#1E293B] border border-slate-200 dark:border-[#334155] rounded-lg">
             {['MAP', 'MARKET', 'RISK'].map(tab => {
               const label = tab === 'MAP' ? 'MAP VIEW' : tab === 'MARKET' ? 'MARKET VIEW' : 'RISK VIEW';
               const isActive = activeTab === tab;
@@ -331,8 +346,8 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
                   onClick={() => setActiveTab(tab as any)}
                   className={`relative px-4 py-1.5 rounded-md text-[12px] font-bold tracking-widest transition-all overflow-hidden ${
                     isActive 
-                      ? 'bg-white text-blue-700 shadow-sm border border-slate-200/60' 
-                      : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100 border border-transparent'
+                      ? 'bg-white dark:bg-[#0F172A] text-blue-700 dark:text-blue-400 shadow-sm border border-slate-200/60 dark:border-blue-500/40' 
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#334155]/40 border border-transparent'
                   }`}
                 >
                   {isActive && <div className="absolute top-0 left-0 w-full h-[2px] bg-blue-500 animate-[pulse_2s_ease-in-out_infinite]"></div>}
@@ -344,7 +359,7 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
         </div>
 
         {/* Legend status indicators & Fullscreen Button */}
-        <div className="flex items-center gap-3 text-[11px] font-medium text-[#64748B]">
+        <div className="flex items-center gap-3 text-[11px] font-medium text-[#64748B] dark:text-[#94A3B8]">
           <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-[#2563EB]" />
             Observed
@@ -353,11 +368,11 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
             <span className="w-2 h-2 rounded-full bg-[#D97706]" />
             Model
           </span>
-          <span className="flex items-center gap-1.5 pr-4 border-r border-[#E2E8F0]">
+          <span className="flex items-center gap-1.5 pr-4 border-r border-[#E2E8F0] dark:border-[#1F2937]">
             <span className="w-2 h-2 rounded-full bg-[#16A34A]" />
             Simulation
           </span>
-          <button className="text-[#94A3B8] hover:text-[#0F172A] ml-1 mr-2">
+          <button className="text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-[#F8FAFC] ml-1 mr-2">
             <MoreHorizontal className="w-4 h-4" />
           </button>
         </div>
@@ -367,19 +382,19 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
 
       {/* Main Geographic Map Visualizer */}
       {eventData && (
-      <div className={`relative w-full flex-1 rounded-xl overflow-hidden bg-[#F8FAFC] border border-[#E2E8F0] flex flex-col transition-all duration-300 ease-in-out ${
+      <div className={`relative w-full flex-1 rounded-xl overflow-hidden bg-[#F8FAFC] dark:bg-[#0B0F19] border border-[#E2E8F0] dark:border-[#1F2937] flex flex-col transition-all duration-300 ease-in-out ${
         isExpanded ? 'min-h-[650px]' : 'min-h-[420px]'
       }`}>
         
         {/* Map View Layer */}
-        <div style={{ display: activeTab === 'MAP' ? 'block' : 'none' }} className="absolute inset-0 w-full h-full bg-[#E4EAE1]">
+        <div style={{ display: activeTab === 'MAP' ? 'block' : 'none' }} className="absolute inset-0 w-full h-full bg-[#E4EAE1] dark:bg-[#0B0F19]">
           {/* The pure MapLibre container */}
           <div ref={mapContainerRef} className="absolute inset-0 w-full h-full" style={{ minHeight: '420px' }} />
 
         {/* Loading Overlay */}
         {(isLoadingEvent || !isMapLoaded) && (
-          <div className="absolute inset-0 flex items-center justify-center bg-[#E4EAE1] z-10 pointer-events-none">
-            <span className="text-[12px] text-[#64748B] font-medium tracking-wide">
+          <div className="absolute inset-0 flex items-center justify-center bg-[#E4EAE1] dark:bg-[#0B0F19] z-10 pointer-events-none">
+            <span className="text-[12px] text-[#64748B] dark:text-[#94A3B8] font-medium tracking-wide">
               {isLoadingEvent ? 'Loading intelligence...' : 'Initializing Geographic Intelligence...'}
             </span>
           </div>
@@ -387,19 +402,19 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
 
         {/* Floating Top-Left Card: Active Hurricane Information */}
         {(eventData || data) && (
-        <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-xl p-3 shadow-sm border border-[#E2E8F0] flex items-center gap-3 pointer-events-auto z-20">
-          <div className="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center shrink-0 text-blue-600">
+        <div className="absolute top-4 left-4 bg-white/90 dark:bg-[#111827]/90 backdrop-blur-sm rounded-xl p-3 shadow-sm border border-[#E2E8F0] dark:border-[#1F2937] flex items-center gap-3 pointer-events-auto z-20">
+          <div className="w-9 h-9 rounded-lg bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center shrink-0 text-blue-600 dark:text-blue-400">
             <span className="text-[20px]">🌊</span>
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-[14px] text-[#0F172A]">🌊 {data?.event?.event_name || eventData?.name}</span>
-              <span className="text-[10px] font-bold text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded uppercase">
+              <span className="font-semibold text-[14px] text-[#0F172A] dark:text-[#F8FAFC]">🌊 {data?.event?.event_name || eventData?.name}</span>
+              <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40 px-1.5 py-0.5 rounded uppercase">
                 {data?.data_quality?.overall_status === 'good' ? 'LIVE' : (data?.data_quality?.overall_status || eventData?.status || 'SIMULATION').toUpperCase()}
               </span>
             </div>
-            <div className="text-[12px] font-medium text-[#475569]">{data?.event?.category || eventData?.category}</div>
-            <div className="text-[11px] text-[#94A3B8] font-mono-tech mt-0.5">
+            <div className="text-[12px] font-medium text-[#475569] dark:text-[#94A3B8]">{data?.event?.category || eventData?.category}</div>
+            <div className="text-[11px] text-[#94A3B8] dark:text-[#64748B] font-mono-tech mt-0.5">
               {data ? 'BACKEND' : eventData?.source} • {new Date(eventData?.updated_at || Date.now()).toLocaleTimeString('en-US', { timeZone: 'UTC', hour: '2-digit', minute:'2-digit' })} UTC
             </div>
           </div>
@@ -407,21 +422,21 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
         )}
 
         {/* Floating Left Map Controls */}
-        <div className="absolute left-4 bottom-4 flex flex-col gap-1 bg-white/90 backdrop-blur-sm rounded-lg shadow-sm border border-[#E2E8F0] p-1 pointer-events-auto z-20">
-          <button onClick={handleZoomIn} className="p-1.5 hover:bg-[#F1F5F9] rounded text-[#475569] transition-colors" title="Zoom In">
+        <div className="absolute left-4 bottom-4 flex flex-col gap-1 bg-white/90 dark:bg-[#111827]/90 backdrop-blur-sm rounded-lg shadow-sm border border-[#E2E8F0] dark:border-[#1F2937] p-1 pointer-events-auto z-20">
+          <button onClick={handleZoomIn} className="p-1.5 hover:bg-[#F1F5F9] dark:hover:bg-[#1E293B] rounded text-[#475569] dark:text-[#94A3B8] transition-colors" title="Zoom In">
             <Plus className="w-3.5 h-3.5" />
           </button>
-          <button onClick={handleZoomOut} className="p-1.5 hover:bg-[#F1F5F9] rounded text-[#475569] transition-colors" title="Zoom Out">
+          <button onClick={handleZoomOut} className="p-1.5 hover:bg-[#F1F5F9] dark:hover:bg-[#1E293B] rounded text-[#475569] dark:text-[#94A3B8] transition-colors" title="Zoom Out">
             <Minus className="w-3.5 h-3.5" />
           </button>
-          <div className="h-[1px] bg-[#E2E8F0] mx-1" />
-          <button onClick={handleReset} className="p-1.5 hover:bg-[#F1F5F9] rounded text-[#475569] transition-colors" title="Reset View">
+          <div className="h-[1px] bg-[#E2E8F0] dark:bg-[#1F2937] mx-1" />
+          <button onClick={handleReset} className="p-1.5 hover:bg-[#F1F5F9] dark:hover:bg-[#1E293B] rounded text-[#475569] dark:text-[#94A3B8] transition-colors" title="Reset View">
             <Locate className="w-3.5 h-3.5" />
           </button>
         </div>
 
         {/* Floating Map Legend (Top-Right) */}
-        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-3 shadow-sm border border-[#E2E8F0] text-[12px] space-y-2.5 text-[#475569] font-medium pointer-events-auto z-20">
+        <div className="absolute top-4 right-4 bg-white/90 dark:bg-[#111827]/90 backdrop-blur-sm rounded-xl px-4 py-3 shadow-sm border border-[#E2E8F0] dark:border-[#1F2937] text-[12px] space-y-2.5 text-[#475569] dark:text-[#CBD5E1] font-medium pointer-events-auto z-20">
           <button onClick={() => toggleLayer('storm')} className={`flex items-center gap-2 transition-opacity ${layersVisible.storm ? 'opacity-100' : 'opacity-40'}`}>
             <span className="text-[14px]">🔵</span>
             <span>Simulated Event Path</span>
@@ -431,11 +446,11 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
             <span>Simulated Impact Zone</span>
           </button>
           <button onClick={() => toggleLayer('ports')} className={`flex items-center gap-2 transition-opacity ${layersVisible.ports ? 'opacity-100' : 'opacity-40'}`}>
-            <span className="text-[14px] text-gray-800">▲</span>
+            <span className="text-[14px] text-gray-800 dark:text-gray-200">▲</span>
             <span>Port</span>
           </button>
           <button onClick={() => toggleLayer('refineries')} className={`flex items-center gap-2 transition-opacity ${layersVisible.refineries ? 'opacity-100' : 'opacity-40'}`}>
-            <span className="text-[14px] text-gray-800">■</span>
+            <span className="text-[14px] text-gray-800 dark:text-gray-200">■</span>
             <span>Industrial Facility</span>
           </button>
           <button onClick={() => toggleLayer('pipelines')} className={`flex items-center gap-2 transition-opacity ${layersVisible.pipelines ? 'opacity-100' : 'opacity-40'}`}>
@@ -448,36 +463,36 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
         <div className="absolute bottom-4 right-4 pointer-events-auto z-20">
           <button
             onClick={onOpenInfrastructureModal}
-            className="bg-white/95 backdrop-blur-sm hover:bg-white text-[#0F172A] text-[13px] font-medium px-4 py-2.5 rounded-lg shadow-sm border border-[#E2E8F0] flex items-center gap-2 transition-colors"
+            className="bg-white/95 dark:bg-[#111827]/95 hover:bg-white dark:hover:bg-[#1E293B] text-[#0F172A] dark:text-[#F8FAFC] text-[13px] font-medium px-4 py-2.5 rounded-lg shadow-sm border border-[#E2E8F0] dark:border-[#1F2937] flex items-center gap-2 transition-colors"
           >
             <span>View Infrastructure Map</span>
-            <ExternalLink className="w-3.5 h-3.5 text-[#64748B]" />
+            <ExternalLink className="w-3.5 h-3.5 text-[#64748B] dark:text-[#94A3B8]" />
           </button>
         </div>
 
         {/* Selected Feature Popups */}
         {selectedFeature && selectedFeature.type === 'STORM' && eventData && (
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-xl border border-[#E2E8F0] w-64 overflow-hidden animate-in zoom-in-95 duration-200 pointer-events-auto z-50">
-            <div className="bg-[#F8FAFC] px-4 py-3 border-b border-[#E2E8F0] flex items-center justify-between">
-              <span className="font-semibold text-[#0F172A] text-[13px] uppercase">{data?.event?.event_name || 'EVENT'}</span>
-              <button onClick={() => setSelectedFeature(null)} className="text-[#64748B] hover:text-[#0F172A]"><X className="w-3.5 h-3.5" /></button>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-[#111827] rounded-xl shadow-xl border border-[#E2E8F0] dark:border-[#1F2937] w-64 overflow-hidden animate-in zoom-in-95 duration-200 pointer-events-auto z-50">
+            <div className="bg-[#F8FAFC] dark:bg-[#1E293B] px-4 py-3 border-b border-[#E2E8F0] dark:border-[#1F2937] flex items-center justify-between">
+              <span className="font-semibold text-[#0F172A] dark:text-[#F8FAFC] text-[13px] uppercase">{data?.event?.event_name || 'EVENT'}</span>
+              <button onClick={() => setSelectedFeature(null)} className="text-[#64748B] dark:text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-[#F8FAFC]"><X className="w-3.5 h-3.5" /></button>
             </div>
             <div className="p-4 space-y-3 text-[12px] tabular-data">
-              <div className="flex justify-between items-center pb-2 border-b border-[#F1F5F9]">
-                <span className="text-[#64748B]">Severity</span>
-                <span className="font-bold text-[#DC2626] bg-[#FEE2E2] px-1.5 py-0.5 rounded text-[10px]">Severe</span>
+              <div className="flex justify-between items-center pb-2 border-b border-[#F1F5F9] dark:border-[#1F2937]">
+                <span className="text-[#64748B] dark:text-[#94A3B8]">Severity</span>
+                <span className="font-bold text-[#DC2626] bg-[#FEE2E2] dark:bg-red-950/40 px-1.5 py-0.5 rounded text-[10px]">Severe</span>
               </div>
-              <div className="flex justify-between items-center pb-2 border-b border-[#F1F5F9]">
-                <span className="text-[#64748B]">Affected Region</span>
-                <span className="font-medium text-[#0F172A]">{data?.event?.region || 'Unknown'}</span>
+              <div className="flex justify-between items-center pb-2 border-b border-[#F1F5F9] dark:border-[#1F2937]">
+                <span className="text-[#64748B] dark:text-[#94A3B8]">Affected Region</span>
+                <span className="font-medium text-[#0F172A] dark:text-[#F8FAFC]">{data?.event?.region || 'Unknown'}</span>
               </div>
-              <div className="flex justify-between items-center pb-2 border-b border-[#F1F5F9]">
-                <span className="text-[#64748B]">Affected Areas</span>
-                <span className="font-medium text-[#0F172A] text-right ml-2 leading-tight">{data?.event?.region || 'Unknown'}</span>
+              <div className="flex justify-between items-center pb-2 border-b border-[#F1F5F9] dark:border-[#1F2937]">
+                <span className="text-[#64748B] dark:text-[#94A3B8]">Affected Areas</span>
+                <span className="font-medium text-[#0F172A] dark:text-[#F8FAFC] text-right ml-2 leading-tight">{data?.event?.region || 'Unknown'}</span>
               </div>
-              <div className="flex justify-between items-center pb-2 border-b border-[#F1F5F9]">
-                <span className="text-[#64748B]">Data State</span>
-                <span className="font-medium text-[#D97706]">SIMULATION</span>
+              <div className="flex justify-between items-center pb-2 border-b border-[#F1F5F9] dark:border-[#1F2937]">
+                <span className="text-[#64748B] dark:text-[#94A3B8]">Data State</span>
+                <span className="font-medium text-[#D97706] dark:text-amber-400">SIMULATION</span>
               </div>
               <button className="w-full mt-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white py-1.5 rounded-md font-medium transition-colors">
                 Analyze Impact
@@ -487,31 +502,31 @@ export const EventImpactMap: React.FC<EventImpactMapProps> = ({
         )}
 
         {selectedFeature && selectedFeature.type === 'REFINERY' && (
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-xl border border-[#E2E8F0] w-64 overflow-hidden animate-in zoom-in-95 duration-200 pointer-events-auto z-50">
-            <div className="bg-[#F8FAFC] px-4 py-3 border-b border-[#E2E8F0] flex items-center justify-between">
-              <span className="font-semibold text-[#0F172A] text-[13px] uppercase">Refinery: {selectedFeature.data.name}</span>
-              <button onClick={() => setSelectedFeature(null)} className="text-[#64748B] hover:text-[#0F172A]"><X className="w-3.5 h-3.5" /></button>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-[#111827] rounded-xl shadow-xl border border-[#E2E8F0] dark:border-[#1F2937] w-64 overflow-hidden animate-in zoom-in-95 duration-200 pointer-events-auto z-50">
+            <div className="bg-[#F8FAFC] dark:bg-[#1E293B] px-4 py-3 border-b border-[#E2E8F0] dark:border-[#1F2937] flex items-center justify-between">
+              <span className="font-semibold text-[#0F172A] dark:text-[#F8FAFC] text-[13px] uppercase">Refinery: {selectedFeature.data.name}</span>
+              <button onClick={() => setSelectedFeature(null)} className="text-[#64748B] dark:text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-[#F8FAFC]"><X className="w-3.5 h-3.5" /></button>
             </div>
             <div className="p-4 space-y-3 text-[12px] tabular-data">
-              <div className="flex justify-between items-center pb-2 border-b border-[#F1F5F9]">
-                <span className="text-[#64748B]">Status</span>
-                <span className={`font-bold px-1.5 py-0.5 rounded text-[10px] ${selectedFeature.data.status === 'AT RISK' ? 'text-[#DC2626] bg-[#FEE2E2]' : 'text-[#16A34A] bg-[#DCFCE7]'}`}>
+              <div className="flex justify-between items-center pb-2 border-b border-[#F1F5F9] dark:border-[#1F2937]">
+                <span className="text-[#64748B] dark:text-[#94A3B8]">Status</span>
+                <span className={`font-bold px-1.5 py-0.5 rounded text-[10px] ${selectedFeature.data.status === 'AT RISK' ? 'text-[#DC2626] bg-[#FEE2E2] dark:bg-red-950/40' : 'text-[#16A34A] bg-[#DCFCE7] dark:bg-green-950/40'}`}>
                   {selectedFeature.data.status}
                 </span>
               </div>
-              <div className="flex justify-between items-center pb-2 border-b border-[#F1F5F9]">
-                <span className="text-[#64748B]">Affected Assets</span>
-                <span className="font-medium text-[#0F172A]">{selectedFeature.data.assets}</span>
+              <div className="flex justify-between items-center pb-2 border-b border-[#F1F5F9] dark:border-[#1F2937]">
+                <span className="text-[#64748B] dark:text-[#94A3B8]">Affected Assets</span>
+                <span className="font-medium text-[#0F172A] dark:text-[#F8FAFC]">{selectedFeature.data.assets}</span>
               </div>
-              <div className="flex justify-between items-center pb-2 border-b border-[#F1F5F9]">
-                <span className="text-[#64748B]">Portfolio Exposure</span>
-                <span className="font-medium text-[#D97706]">{selectedFeature.data.exposure}</span>
+              <div className="flex justify-between items-center pb-2 border-b border-[#F1F5F9] dark:border-[#1F2937]">
+                <span className="text-[#64748B] dark:text-[#94A3B8]">Portfolio Exposure</span>
+                <span className="font-medium text-[#D97706] dark:text-amber-400">{selectedFeature.data.exposure}</span>
               </div>
-              <div className="flex justify-between items-center pb-2 border-b border-[#F1F5F9]">
-                <span className="text-[#64748B]">Est. Risk Impact</span>
-                <span className="font-medium text-[#DC2626]">{selectedFeature.data.impact}</span>
+              <div className="flex justify-between items-center pb-2 border-b border-[#F1F5F9] dark:border-[#1F2937]">
+                <span className="text-[#64748B] dark:text-[#94A3B8]">Est. Risk Impact</span>
+                <span className="font-medium text-[#DC2626] dark:text-red-400">{selectedFeature.data.impact}</span>
               </div>
-              <button className="w-full mt-2 bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#0F172A] py-1.5 rounded-md font-medium transition-colors border border-[#E2E8F0]">
+              <button className="w-full mt-2 bg-[#F1F5F9] dark:bg-[#1E293B] hover:bg-[#E2E8F0] dark:hover:bg-[#334155] text-[#0F172A] dark:text-[#F8FAFC] py-1.5 rounded-md font-medium transition-colors border border-[#E2E8F0] dark:border-[#334155]">
                 View Evidence
               </button>
             </div>

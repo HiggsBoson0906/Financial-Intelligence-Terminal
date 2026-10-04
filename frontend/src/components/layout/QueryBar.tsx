@@ -45,15 +45,15 @@ export const QueryBar: React.FC<QueryBarProps> = ({ onRunAnalysis, isLoading }) 
   return (
     <div className="relative z-30 w-full flex flex-col gap-3">
       {/* Search Input Container */}
-      <div className={`relative flex items-center bg-white border ${isFocused ? 'border-blue-400 ring-4 ring-blue-500/10' : 'border-[#E2E8F0] hover:border-[#CBD5E1]'} rounded-xl shadow-sm transition-all duration-300 px-4 py-2.5`}>
+      <div className={`relative flex items-center bg-white dark:bg-slate-900 border ${isFocused ? 'border-blue-400 dark:border-blue-500 ring-4 ring-blue-500/10' : 'border-[#E2E8F0] dark:border-slate-800 hover:border-[#CBD5E1] dark:hover:border-slate-700'} rounded-xl shadow-sm transition-all duration-300 px-4 py-2.5`}>
         <div className="flex items-center gap-3 w-full">
           {/* AI Icon */}
-          <div className={`flex items-center justify-center shrink-0 w-8 h-8 rounded-lg ${isFocused ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-400'} transition-colors`}>
+          <div className={`flex items-center justify-center shrink-0 w-8 h-8 rounded-lg ${isFocused ? 'bg-blue-50 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500'} transition-colors`}>
             <Sparkles className="w-4 h-4" />
           </div>
 
           <div className="flex flex-col flex-1">
-            <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest leading-none mb-1">
+            <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest leading-none mb-1">
               ✦ ASK PILLERSTREET
             </span>
             <input
@@ -64,7 +64,7 @@ export const QueryBar: React.FC<QueryBarProps> = ({ onRunAnalysis, isLoading }) 
               onBlur={() => setIsFocused(false)}
               onKeyDown={(e) => e.key === 'Enter' && handleRun()}
               placeholder={placeholders[placeholderIndex]}
-              className="w-full bg-transparent text-[15px] text-[#0F172A] placeholder-[#94A3B8] focus:outline-none placeholder-opacity-100 transition-all duration-500"
+              className="w-full bg-transparent text-[15px] text-[#0F172A] dark:text-slate-100 placeholder-[#94A3B8] dark:placeholder-slate-500 focus:outline-none placeholder-opacity-100 transition-all duration-500"
             />
           </div>
 
@@ -90,13 +90,13 @@ export const QueryBar: React.FC<QueryBarProps> = ({ onRunAnalysis, isLoading }) 
       </div>
 
       {/* Suggestion Chips */}
-      <div className="flex items-center gap-2 px-1">
-        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-2">Suggestions:</span>
+      <div className="flex items-center gap-2 px-1 flex-wrap">
+        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mr-2">Suggestions:</span>
         {suggestions.map((s, idx) => (
           <button
             key={idx}
             onClick={() => setQuery(s.text)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-slate-200 text-[11px] font-medium text-slate-600 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 transition-colors shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[11px] font-medium text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-950/50 hover:text-blue-700 dark:hover:text-blue-300 hover:border-blue-200 dark:hover:border-blue-800 transition-colors shadow-sm"
           >
             {s.icon}
             {s.text}
