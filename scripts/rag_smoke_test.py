@@ -12,6 +12,16 @@ Demonstrates:
 import json
 import logging
 import time
+import sys
+from pathlib import Path
+
+# Add backend and root to sys.path
+root_dir = Path(__file__).resolve().parent.parent
+backend_dir = root_dir / "backend"
+if str(backend_dir) not in sys.path:
+    sys.path.insert(0, str(backend_dir))
+if str(root_dir) not in sys.path:
+    sys.path.insert(0, str(root_dir))
 
 from app.agents.orchestrator import run_analysis
 from app.services.redis_service import redis_client

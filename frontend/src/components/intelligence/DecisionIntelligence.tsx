@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ExternalLink, ShieldAlert, Brain, CloudRain, TrendingUp, BarChart3, AlertCircle } from 'lucide-react';
 
 import { QueryResponse } from '../../types/api';
+import { calculateEnergyExposure } from '../../utils/portfolio';
 
 interface DecisionIntelligenceProps {
   data?: QueryResponse | null;
@@ -17,18 +18,61 @@ export const DecisionIntelligence: React.FC<DecisionIntelligenceProps> = ({
   const [activeTab, setActiveTab] = useState<'Overview' | 'WhyItMatters' | 'AgentViews'>('Overview');
   
   const eventName = data?.event?.event_name && data.event.event_name !== 'Not specified' ? data.event.event_name : (data?.event?.event_type && data.event.event_type !== 'Not specified' ? data.event.event_type : 'Event Analysis');
-  const dataStatus = data?.data_quality?.overall_status === 'good' ? 'LIVE' : (data?.data_quality?.overall_status || 'SIMULATION').toUpperCase();
+  
+  // Deterministic Data State mapping (good -> LIVE, degraded -> DEGRADED, unavailable -> UNAVAILABLE)
+  const rawDqStatus = data?.data_quality?.overall_status?.toLowerCase();
+  const dataStatus = rawDqStatus === 'good'
+    ? 'LIVE'
+    : (rawDqStatus === 'degraded'
+        ? 'DEGRADED'
+        : (rawDqStatus === 'unavailable'
+            ? 'UNAVAILABLE'
+            : (data?.data_quality?.overall_status || 'SIMULATION').toUpperCase()));
+
+  // Dynamic Impact Level based on real scenario shock data
+  const rawImpactPct = data?.scenario?.portfolio_impact?.total_impact_percent 
+    ?? (data?.risk?.scenario?.portfolio_shock_pct != null ? data.risk.scenario.portfolio_shock_pct * 100 : undefined);
+    
+  const impactLevel = data?.scenario?.portfolio_impact?.impact_level
+    || data?.risk?.scenario?.impact_level
+    || (rawImpactPct !== undefined
+        ? (Math.abs(rawImpactPct) >= 5.0
+            ? 'HIGH IMPACT'
+            : Math.abs(rawImpactPct) >= 2.0
+              ? 'MODERATE IMPACT'
+              : 'LOW IMPACT')
+        : 'IMPACT UNAVAILABLE');
+
+  const impactBadgeClass = impactLevel === 'HIGH IMPACT'
+    ? 'text-[#DC2626] dark:text-red-400 bg-[#FEE2E2] dark:bg-red-950/40'
+    : impactLevel === 'MODERATE IMPACT'
+      ? 'text-[#D97706] dark:text-amber-400 bg-[#FEF3C7] dark:bg-amber-950/40'
+      : impactLevel === 'LOW IMPACT'
+        ? 'text-[#16A34A] dark:text-green-400 bg-[#DCFCE7] dark:bg-green-950/40'
+        : 'text-[#64748B] dark:text-slate-400 bg-[#F1F5F9] dark:bg-slate-800';
+
+  // Energy exposure derived dynamically from portfolio weights
+  const energyExposure = data?.portfolio_context?.energy_exposure !== undefined
+    ? data.portfolio_context.energy_exposure
+    : calculateEnergyExposure(data?.portfolio_context?.weights);
+
+  // Baseline VaR (historical portfolio risk)
+  const baselineVar = data?.risk?.baseline?.var_95 ?? data?.risk?.metrics?.var_95;
+
+  // Scenario Impact (query-specific hypothetical impact)
+  const scenarioImpactPct = data?.scenario?.portfolio_impact?.total_impact_percent;
+  const scenarioLossVal = data?.scenario?.portfolio_impact?.expected_loss_value;
 
   return (
     <div className="flex flex-col justify-between h-full flex-1 select-none">
       <div>
-        {/* Header & High Impact Badge */}
+        {/* Header & Impact Classification Badge */}
         <div className="flex items-center justify-between pb-3 border-b border-[#F1F5F9] dark:border-[#1F2937]">
           <h2 className="text-[21px] font-bold text-[#0F172A] dark:text-[#F8FAFC]">
             Decision Intelligence
           </h2>
-          <span className="text-[11px] font-semibold text-[#DC2626] dark:text-red-400 bg-[#FEE2E2] dark:bg-red-950/40 px-2 py-0.5 rounded">
-            HIGH IMPACT
+          <span className={`text-[11px] font-semibold px-2 py-0.5 rounded uppercase tracking-wider ${impactBadgeClass}`}>
+            {impactLevel}
           </span>
         </div>
 
@@ -103,7 +147,7 @@ export const DecisionIntelligence: React.FC<DecisionIntelligenceProps> = ({
                 </span>
                 <button 
                   onClick={onExploreScenario}
-                  className="text-[11px] font-semibold text-[#2563EB] dark:text-blue-400 hover:text-[#1D4ED8] dark:hover:text-blue-300 flex items-center gap-0.5"
+                  className="text-[11px] font-semibold text-[#2563EB] dark:text-blue-400 hover:text-[#1D4ED8] dark:hover:text-blue-300 flex items-center gap-0.5 cursor-pointer"
                 >
                   <span>View in Lab</span>
                   <ExternalLink className="w-3 h-3" />
@@ -115,32 +159,44 @@ export const DecisionIntelligence: React.FC<DecisionIntelligenceProps> = ({
                   <div className="flex justify-between items-center">
                     <span className="text-[#64748B] dark:text-[#94A3B8]">Energy Exposure</span>
                     <span className="font-semibold text-[#0F172A] dark:text-[#F8FAFC] text-[18px]">
-                      {data?.recommendations?.[0]?.expected_effect?.portfolio_risk_change !== undefined 
-                        ? `${Math.abs(data.recommendations[0].expected_effect.portfolio_risk_change * 100).toFixed(1)}%` 
-                        : '60.0%'}
+                      {(energyExposure * 100).toFixed(1)}%
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-[#64748B] dark:text-[#94A3B8]">Risk Change</span>
-                    <span className="font-semibold text-[#DC2626] dark:text-red-400 text-[22px]">
-                      {data?.risk?.metrics?.var_95 !== undefined ? `+$${(data.risk.metrics.var_95 / 1000).toFixed(1)}K` : '+$345.4K'}
+                    <span className="text-[#64748B] dark:text-[#94A3B8]">Baseline VaR (95%)</span>
+                    <span className="font-semibold text-[#0F172A] dark:text-[#F8FAFC] text-[20px] font-mono-tech">
+                      {baselineVar !== undefined ? `$${(baselineVar / 1000).toFixed(1)}K` : 'Unavailable'}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-[#64748B] dark:text-[#94A3B8]">Portfolio Impact</span>
-                    <span className="font-semibold text-[#DC2626] dark:text-red-400 text-[14px]">
-                      {data?.scenario?.portfolio_impact?.total_impact_percent !== undefined ? `${data.scenario.portfolio_impact.total_impact_percent}%` : '-10.0%'}
+                    <span className="text-[#64748B] dark:text-[#94A3B8]">Scenario Impact</span>
+                    <span className={`font-semibold text-[15px] font-mono-tech ${
+                      scenarioImpactPct !== undefined
+                        ? (scenarioImpactPct < 0 
+                            ? 'text-[#DC2626] dark:text-red-400' 
+                            : 'text-[#16A34A] dark:text-green-400')
+                        : 'text-[#64748B] dark:text-[#94A3B8]'
+                    }`}>
+                      {scenarioImpactPct !== undefined
+                        ? `${scenarioImpactPct > 0 ? '+' : ''}${scenarioImpactPct.toFixed(1)}%${scenarioLossVal !== undefined ? ` (${scenarioLossVal >= 0 ? '+$' : '-$'}${(Math.abs(scenarioLossVal) / 1000).toFixed(1)}K)` : ''}`
+                        : 'Unavailable'}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-[#64748B] dark:text-[#94A3B8]">Confidence</span>
                     <span className="font-semibold text-[#16A34A] dark:text-green-400 text-[14px]">
-                      {data?.answer?.confidence !== undefined ? `${Math.round(data.answer.confidence * 100)}%` : '85%'}
+                      {data?.answer?.confidence !== undefined ? `${Math.round(data.answer.confidence * 100)}%` : 'Unavailable'}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-[#64748B] dark:text-[#94A3B8]">Data State</span>
-                    <span className="font-bold text-[#D97706] dark:text-amber-400 bg-[#FEF3C7] dark:bg-amber-950/40 px-1.5 py-0.5 rounded text-[10px] uppercase">
+                    <span className={`font-bold px-1.5 py-0.5 rounded text-[10px] uppercase ${
+                      dataStatus === 'LIVE'
+                        ? 'text-[#16A34A] dark:text-green-400 bg-[#DCFCE7] dark:bg-green-950/40'
+                        : dataStatus === 'DEGRADED'
+                          ? 'text-[#D97706] dark:text-amber-400 bg-[#FEF3C7] dark:bg-amber-950/40'
+                          : 'text-[#64748B] dark:text-slate-400 bg-[#F1F5F9] dark:bg-slate-800'
+                    }`}>
                       {dataStatus}
                     </span>
                   </div>
@@ -335,10 +391,18 @@ export const DecisionIntelligence: React.FC<DecisionIntelligenceProps> = ({
                 </span>
               </div>
               <div className="text-[12px] text-[#475569] dark:text-[#94A3B8] flex items-center justify-between font-mono-tech">
-                <span>VaR 95%: <strong className="text-red-600 dark:text-red-400">${data?.risk?.metrics?.var_95 !== undefined ? Math.round(data.risk.metrics.var_95 / 1000) : 345}K</strong></span>
-                <span>ES: <strong className="text-red-600 dark:text-red-400">${data?.risk?.metrics?.expected_shortfall !== undefined ? Math.round(data.risk.metrics.expected_shortfall / 1000) : 410}K</strong></span>
-                <span>Vol: <strong className="text-[#0F172A] dark:text-[#F8FAFC]">{data?.risk?.metrics?.volatility !== undefined ? (data.risk.metrics.volatility * 100).toFixed(0) : 142}%</strong></span>
+                <span>VaR 95%: <strong className="text-red-600 dark:text-red-400">{baselineVar !== undefined ? `$${Math.round(baselineVar / 1000)}K` : 'N/A'}</strong></span>
+                <span>ES: <strong className="text-red-600 dark:text-red-400">{data?.risk?.baseline?.expected_shortfall !== undefined ? `$${Math.round(data.risk.baseline.expected_shortfall / 1000)}K` : (data?.risk?.metrics?.expected_shortfall !== undefined ? `$${Math.round(data.risk.metrics.expected_shortfall / 1000)}K` : 'N/A')}</strong></span>
+                <span>Vol: <strong className="text-[#0F172A] dark:text-[#F8FAFC]">{data?.risk?.baseline?.volatility !== undefined ? `${(data.risk.baseline.volatility * 100).toFixed(1)}%` : (data?.risk?.metrics?.volatility !== undefined ? `${(data.risk.metrics.volatility * 100).toFixed(1)}%` : 'N/A')}</strong></span>
               </div>
+              {scenarioImpactPct !== undefined && (
+                <div className="text-[11px] text-[#64748B] dark:text-[#94A3B8] mt-1.5 pt-1.5 border-t border-[#F1F5F9] dark:border-[#1F2937] flex items-center justify-between font-mono-tech">
+                  <span>Scenario Shock:</span>
+                  <strong className={scenarioImpactPct < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}>
+                    {scenarioImpactPct > 0 ? '+' : ''}{scenarioImpactPct.toFixed(1)}% {scenarioLossVal !== undefined ? `(${scenarioLossVal >= 0 ? '+$' : '-$'}${Math.round(Math.abs(scenarioLossVal) / 1000)}K)` : ''}
+                  </strong>
+                </div>
+              )}
             </div>
 
             {/* Agent 4: Hedging Strategy Agent */}

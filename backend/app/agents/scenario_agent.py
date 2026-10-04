@@ -20,7 +20,16 @@ def node_scenario_agent(state: AnalysisState) -> AnalysisState:
     # Check if we have historical matches
     matches = state.historical_matches.get("matches", [])
     if not matches:
-        state.scenario = {"status": "unavailable", "reason": "No historical analogues found."}
+        state.scenario = {
+            "status": "unavailable",
+            "reason": "No historical analogues found.",
+            "scenario_name": f"{(state.user_intent.get('event_type') or 'Event').capitalize()} Shock Scenario",
+            "estimated_impacts": {},
+            "portfolio_impact": {
+                "status": "unavailable",
+                "impact_level": "IMPACT UNAVAILABLE"
+            }
+        }
         state.agent_trace.append(
             AgentTrace(
                 node="scenario_agent",
@@ -37,24 +46,31 @@ def node_scenario_agent(state: AnalysisState) -> AnalysisState:
     top_match = matches[0]
     
     # Construct scenario
-    scenario_name = f"{(state.user_intent.get('event_type') or 'Event').capitalize()} Shock Scenario"
+    event_type = state.user_intent.get("event_type") or "Event"
+    scenario_name = f"{event_type.capitalize()} Shock Scenario"
     
     # Calculate estimated impacts from historical reactions
     estimated_impacts = {}
     asset_reactions = top_match.get("asset_reactions", {}).get("assets", {})
     for sym, reaction in asset_reactions.items():
-        if reaction.get("status") == "available":
-            estimated_impacts[sym] = reaction.get("future_5d_return")
+        if isinstance(reaction, dict) and reaction.get("status") == "available":
+            future_ret = reaction.get("future_5d_return")
+            if future_ret is not None:
+                estimated_impacts[sym] = float(future_ret)
             
     state.scenario = {
         "scenario_name": scenario_name,
-        "shock_description": f"Simulated impact based on {top_match.get('event_name')} ({top_match.get('event_year')}).",
+        "shock_description": f"Simulated impact based on historical analogue {top_match.get('event_name')} ({top_match.get('event_year')}).",
         "affected_assets": list(estimated_impacts.keys()),
         "historical_context": top_match.get("event_name"),
         "assumptions": ["Assumes current market conditions react similarly to the historical analogue."],
         "estimated_impacts": estimated_impacts,
         "confidence": round(top_match.get("similarity", 0.0), 4),
-        "status": "modeled"
+        "status": "modeled" if estimated_impacts else "unavailable",
+        "portfolio_impact": {
+            "status": "modeled" if estimated_impacts else "unavailable",
+            "impact_level": "IMPACT UNAVAILABLE" if not estimated_impacts else None
+        }
     }
     
     state.evidence.append(

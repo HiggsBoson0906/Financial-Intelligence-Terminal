@@ -15,7 +15,9 @@ import transformers
 try:
     import sys
     import os
-    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "backend")))
+    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    sys.path.insert(0, root_dir)
+    sys.path.insert(0, os.path.join(root_dir, "backend"))
     
     from app.services.embedding_service import _ensure_loaded
     _ensure_loaded()

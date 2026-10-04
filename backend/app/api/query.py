@@ -164,8 +164,15 @@ def submit_query(request: QueryRequest):
             llm_ms=round(llm_ms, 2)
         )
         
+        # Determine actual data quality status (good, degraded, unavailable)
+        dq_status = "good"
+        if state.warnings or any(s.status in ("fallback", "unavailable") for s in data_sources):
+            dq_status = "degraded"
+        if not state.market_context or all(v.get("status") == "unavailable" for v in state.market_context.values()):
+            dq_status = "unavailable"
+
         data_quality = DataQualityResponse(
-            overall_status=conf_result["label"],
+            overall_status=dq_status,
             warnings=conf_result["warnings"]
         )
         
@@ -275,6 +282,7 @@ def submit_query(request: QueryRequest):
             status=state.status,
             query=state.query,
             answer=answer,
+            portfolio_context=state.portfolio_context,
             market_context=state.market_context,
             event=state.event_context,
             sentiment=state.sentiment,

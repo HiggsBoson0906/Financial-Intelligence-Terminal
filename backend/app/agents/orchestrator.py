@@ -16,7 +16,7 @@ from langgraph.graph import StateGraph, START, END
 
 from app.schemas.orchestration import AnalysisState, AgentTrace, EvidenceItem
 from app.services.historical_rag_service import retrieve_similar_events
-from app.services.query_parser import parse_query
+from app.services.query_parser import parse_query, KNOWN_REGIONS_MAP
 from app.services.market_service import market_provider
 
 # Import the specialist agent nodes
@@ -60,9 +60,10 @@ def node_parse_query(state: AnalysisState) -> AnalysisState:
     state.symbols = intent.get("symbols", [])
     
     # Strictly populate primary event_context from user_intent (parsed user query)
-    event_name = intent.get("event_name") or intent.get("event_type") or "Not specified"
+    event_name = intent.get("event_name") or (intent.get("event_type").title() if intent.get("event_type") else "Not specified")
     event_type = intent.get("event_type") or "Not specified"
-    region = intent.get("region") or "Not specified"
+    raw_region = intent.get("region")
+    region = KNOWN_REGIONS_MAP.get(raw_region, raw_region.title() if raw_region else "Not specified")
     category = intent.get("category")
     severity = f"Category {category}" if category else "Not specified"
     
@@ -109,6 +110,11 @@ def node_load_context(state: AnalysisState) -> AnalysisState:
                 "SPY": 0.1
             }
         }
+        weights = state.portfolio_context.get("weights", {})
+        energy_assets = {"XOM", "CVX", "COP", "OXY", "XLE"}
+        state.portfolio_context["energy_exposure"] = round(
+            sum(w for s, w in weights.items() if s.upper() in energy_assets), 4
+        )
     
     # Fetch Market Data
     market_data = {}
@@ -306,9 +312,9 @@ builder.add_edge("load_context", "sentiment")
 builder.add_edge("sentiment", "weather_macro")
 builder.add_edge("weather_macro", "historical_rag")
 builder.add_edge("historical_rag", "cross_asset_context")
-builder.add_edge("cross_asset_context", "risk")
-builder.add_edge("risk", "scenario")
-builder.add_edge("scenario", "hedging")
+builder.add_edge("cross_asset_context", "scenario")
+builder.add_edge("scenario", "risk")
+builder.add_edge("risk", "hedging")
 builder.add_edge("hedging", "evidence_finalize")
 builder.add_edge("evidence_finalize", END)
 

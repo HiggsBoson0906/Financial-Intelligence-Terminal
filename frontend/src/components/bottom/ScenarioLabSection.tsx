@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { QueryResponse } from '../../types/api';
 import { API_BASE_URL } from '../../services/api';
+import { calculateEnergyExposure } from '../../utils/portfolio';
 
 interface ScenarioLabSectionProps {
   data?: QueryResponse | null;
@@ -9,10 +10,7 @@ interface ScenarioLabSectionProps {
 export const ScenarioLabSection: React.FC<ScenarioLabSectionProps> = ({ data }) => {
   // Calculate initial energy exposure dynamically
   const initialEnergy = React.useMemo(() => {
-    const weights = data?.portfolio_context?.weights;
-    if (!weights) return 0;
-    // Simple mock: if Energy factor exists, use it, else sum energy-related symbols.
-    return 0; // Default if we don't have enough logic.
+    return Math.round(calculateEnergyExposure(data?.portfolio_context?.weights) * 100);
   }, [data]);
 
   const [intensity, setIntensity] = useState<number>(4);

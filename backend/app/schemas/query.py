@@ -90,6 +90,7 @@ class QueryResponse(BaseModel):
     
     answer: AnswerResponse = Field(default_factory=AnswerResponse)
     
+    portfolio_context: Dict[str, Any] = Field(default_factory=dict)
     market_context: Dict[str, Any] = Field(default_factory=dict)
     event: Dict[str, Any] = Field(default_factory=dict)
     sentiment: Dict[str, Any] = Field(default_factory=dict)

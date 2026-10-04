@@ -81,7 +81,14 @@ def parse_query(query: str) -> Dict[str, Any]:
     named_match = re.search(r'\b(?:hurricane|storm|cyclone)\s+([a-zA-Z]+)\b', query, re.IGNORECASE)
     if named_match:
         cand = named_match.group(1).lower()
-        if cand not in {"in", "at", "on", "near", "warning", "watch", "impact", "category", "risk", "damage", "track", "season", "strikes", "hits", "approaches", "current", "severe", "major", "the", "a", "an"} and len(cand) > 2:
+        excluded = {
+            "in", "at", "on", "near", "warning", "watch", "impact", "category", "risk", "damage",
+            "track", "season", "strikes", "hits", "approaches", "approaching", "heading", "moving",
+            "forecast", "current", "severe", "major", "the", "a", "an", "and", "affecting", "affect",
+            "affects", "impacting", "impacts", "hitting", "striking", "reaching", "threatening",
+            "forming", "developing", "crossing", "over", "along", "off", "from", "with", "into"
+        }
+        if cand not in excluded and len(cand) > 2 and not category:
             event = f"Hurricane {cand.capitalize()}"
 
     if not event:
@@ -109,7 +116,7 @@ def parse_query(query: str) -> Dict[str, Any]:
     region = None
     for r in sorted(KNOWN_REGIONS_MAP.keys(), key=len, reverse=True):
         if r in query_lower:
-            region = KNOWN_REGIONS_MAP[r]
+            region = r
             break
             
     # Task extraction
@@ -130,7 +137,7 @@ def parse_query(query: str) -> Dict[str, Any]:
         
     return {
         "symbols": symbols,
-        "event_type": event,
+        "event_type": event.lower() if event else None,
         "event_name": event_name,
         "region": region,
         "task": task,
